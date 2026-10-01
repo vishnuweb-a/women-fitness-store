@@ -1,0 +1,107 @@
+{
+  "version": 1,
+  "skills": {
+    "Tailwind CSS v4 + shadcn/ui": {
+      "source": "yuen30/my-skills",
+      "sourceType": "github",
+      "skillPath": "tailwind-v4-shadcn/SKILL.md",
+      "computedHash": "cfd404ffbc79e371aa66a5ae498c784626f8a9b5366e0f89704aa81d059584e7"
+    },
+    "busirocket-tailwindcss-v4": {
+      "source": "busirocket/agents-skills",
+      "sourceType": "github",
+      "skillPath": "skills/busirocket-tailwindcss-v4/SKILL.md",
+      "computedHash": "6535f33684606162441164693edbddf20a5ffd8176290df6b0fed5adf90b1122"
+    },
+    "design-philosophy": {
+      "source": "microsoft/vscode",
+      "sourceType": "github",
+      "skillPath": ".github/skills/design-philosophy/SKILL.md",
+      "computedHash": "58573f813b10ef8be40c97df5bccbf8ff07a879eacf40c26f9e23ef5bc221336"
+    },
+    "framer-motion-react": {
+      "source": "c-jeril/framer-motion-skills",
+      "sourceType": "github",
+      "skillPath": "skills/framer-motion-react/SKILL.md",
+      "computedHash": "05afba82bf872e148b95c300ed1ca41432878c63aca79d9c1280a029a41af3bd"
+    },
+    "frontend-a11y": {
+      "source": "affaan-m/ECC",
+      "sourceType": "github",
+      "skillPath": "skills/frontend-a11y/SKILL.md",
+      "computedHash": "da9365797c4e5668a8384e271f0398e8241f66c9c18389af11f87890a49c630f"
+    },
+    "frontend-architect-Reactjs_v19_Nextjs_v15": {
+      "source": "lucianomenddes/ai-agent-skills",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/frontend-architect-Reactjs_v19_Nextjs_v15/SKILL.md",
+      "computedHash": "f74d36200bf0cbd7437c55b47e19ab544c2811a25594ff94bdf96502f46726db"
+    },
+    "frontend-design-direction": {
+      "source": "affaan-m/ECC",
+      "sourceType": "github",
+      "skillPath": "skills/frontend-design-direction/SKILL.md",
+      "computedHash": "5e37a3a8e90de1da40881a2ed80de2a7246b46201cc325598c1b60fb3e8c4cfe"
+    },
+    "frontend-slides": {
+      "source": "affaan-m/ECC",
+      "sourceType": "github",
+      "skillPath": "skills/frontend-slides/SKILL.md",
+      "computedHash": "f4dd7114a89e06994bbac66c7e29e2e8e5b786dde2dc5e6450e81e55347b58de"
+    },
+    "image-to-code": {
+      "source": "leonxlnx/taste-skill",
+      "sourceType": "github",
+      "skillPath": "skills/image-to-code-skill/SKILL.md",
+      "computedHash": "3d2ac14d956fdafc5500d2108b90895e134d847f9f199e7f1d18bf1f814cf7c8"
+    },
+    "make-interfaces-feel-better": {
+      "source": "affaan-m/ECC",
+      "sourceType": "github",
+      "skillPath": "skills/make-interfaces-feel-better/SKILL.md",
+      "computedHash": "bd14931fa4a2739cc81633027dfc829d10034c81a6d63ebd4baa39512df28cfb"
+    },
+    "reactjs": {
+      "source": "jcchikikomori/skills-md",
+      "sourceType": "github",
+      "skillPath": "skills/reactjs/SKILL.md",
+      "computedHash": "1db63ec26930185ec86fef5afd7456e2cc1b18a2133055a12c7f7fbfb63d35c4"
+    },
+    "supabase-postgres-best-practices": {
+      "source": "supabase/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/supabase-postgres-best-practices/SKILL.md",
+      "computedHash": "128fac78002d916c8ca908245d398e634f540d8bcf20915b2b2359aeb18eba59"
+    },
+    "tailwind-4-docs": {
+      "source": "lombiq/tailwind-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/tailwind-4-docs/SKILL.md",
+      "computedHash": "4900f575f24641b1af459cda37cbb8438ecf3f8f1a63148384197cb730895093"
+    },
+    "tailwindcss-fundamentals-v4": {
+      "source": "josiahsiegel/claude-plugin-marketplace",
+      "sourceType": "github",
+      "skillPath": "plugins/tailwindcss-master/skills/tailwindcss-fundamentals-v4/SKILL.md",
+      "computedHash": "140c251f4c42c1e49d25d3bec274261b6681bf9e4b15b77abc0b6d67df77e05f"
+    },
+    "ui-styling": {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/ui-styling/SKILL.md",
+      "computedHash": "fa6d85097b0c131fb8708a6e7e08aff2af12fd2966cfe0a73bd258dcac99ea5b"
+    },
+    "ui-ux-pro-max": {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/ui-ux-pro-max/SKILL.md",
+      "computedHash": "b0f52ab109c122ee4de15f4880cba51a70a14fc6dca9ab63f1027b09120da0ef"
+    },
+    "vercel-react-best-practices": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/react-best-practices/SKILL.md",
+      "computedHash": "6b526d013e28073246a36f99b529bc43745d30832ecfa8217b359c34f260ca6b"
+    }
+  }
+}

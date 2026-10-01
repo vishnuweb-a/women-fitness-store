@@ -1,0 +1,219 @@
+@import "tailwindcss";
+
+/* Dark mode is class-driven so it can be toggled deliberately rather than
+   following the OS. Tailwind v4 requires declaring this variant explicitly. */
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * FITNEX WOMEN design tokens.
+ * Derived from the reference screens in `pages/` and the banner art in
+ * `banners/`: black/charcoal athletic imagery, white and light-gray shopping
+ * surfaces, and a single strong red reserved for actions and promotions.
+ * See docs/DESIGN_SYSTEM.md for the rationale behind each ramp.
+ */
+@theme {
+  /* === Brand red: actions, promos, sale pricing === */
+  --color-brand-50: oklch(0.971 0.016 17.4);
+  --color-brand-100: oklch(0.936 0.038 17.7);
+  --color-brand-200: oklch(0.885 0.072 18.3);
+  --color-brand-300: oklch(0.808 0.122 19.6);
+  --color-brand-400: oklch(0.704 0.185 22.2);
+  --color-brand-500: oklch(0.625 0.235 25.3);
+  --color-brand-600: oklch(0.567 0.231 26.9);
+  --color-brand-700: oklch(0.49 0.202 27.3);
+  --color-brand-800: oklch(0.432 0.17 27.4);
+  --color-brand-900: oklch(0.39 0.141 25.7);
+
+  /* === Ink: hero bands, headings, athletic imagery surfaces === */
+  --color-ink-50: oklch(0.985 0 0);
+  --color-ink-100: oklch(0.967 0 0);
+  --color-ink-200: oklch(0.922 0 0);
+  --color-ink-300: oklch(0.87 0 0);
+  --color-ink-400: oklch(0.708 0 0);
+  --color-ink-500: oklch(0.556 0 0);
+  --color-ink-600: oklch(0.439 0 0);
+  --color-ink-700: oklch(0.371 0 0);
+  --color-ink-800: oklch(0.269 0 0);
+  --color-ink-900: oklch(0.205 0 0);
+  --color-ink-950: oklch(0.145 0 0);
+
+  /* === Supporting semantics === */
+  --color-success: oklch(0.627 0.17 149.2);
+  --color-warning: oklch(0.769 0.162 70.1);
+
+  /* === Typography === */
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    sans-serif;
+  --font-display: "Archivo", "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  /* Fluid headings: vw is always paired with rem so browser zoom still works. */
+  --text-display-sm: clamp(1.75rem, 1.35rem + 2vw, 2.5rem);
+  --text-display-md: clamp(2.25rem, 1.6rem + 3.25vw, 3.5rem);
+  --text-display-lg: clamp(2.75rem, 1.7rem + 5.25vw, 4.5rem);
+
+  /* === Layout === */
+  --spacing-section: clamp(2.5rem, 1.5rem + 4vw, 5rem);
+  --container-site: 80rem;
+
+  /* === Radius: compact cards, as in the reference product grid === */
+  --radius-card: 0.625rem;
+  --radius-control: 0.5rem;
+
+  /* === Motion === */
+  --ease-athletic: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+}
+
+/*
+ * shadcn/ui semantic variables. These are plain CSS variables (not @theme)
+ * because shadcn components reference them directly and they are overridden
+ * per color scheme.
+ */
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.625 0.235 25.3);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.205 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.967 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.967 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.3);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.625 0.235 25.3);
+  --radius: 0.625rem;
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.704 0.185 22.2);
+  --primary-foreground: oklch(0.145 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.2);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.704 0.185 22.2);
+}
+
+/* Map the semantic variables onto Tailwind's color namespace so utilities
+   like `bg-background` and `text-muted-foreground` resolve. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  /* Tailwind v4 defaults `border-color` to currentColor; restore a token. */
+  *,
+  ::after,
+  ::before {
+    border-color: var(--border);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* v4 ships buttons with cursor:default; restore the expected affordance. */
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  /* A single, visible focus treatment everywhere. Never remove this without
+     providing an equally visible replacement. */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  /* Honour the OS reduced-motion setting for every animation in the app. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@utility container-site {
+  width: 100%;
+  margin-inline: auto;
+  max-width: var(--container-site);
+  padding-inline: 1rem;
+
+  @media (width >= 48rem) {
+    padding-inline: 1.5rem;
+  }
+
+  @media (width >= 64rem) {
+    padding-inline: 2rem;
+  }
+}
+
+/* Skip link: visually hidden until focused by keyboard. */
+@utility skip-link {
+  position: absolute;
+  left: 0.75rem;
+  top: 0.75rem;
+  z-index: 100;
+  transform: translateY(-200%);
+  transition: transform var(--duration-fast) var(--ease-athletic);
+
+  &:focus-visible {
+    transform: translateY(0);
+  }
+}
