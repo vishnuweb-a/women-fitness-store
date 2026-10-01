@@ -29,19 +29,22 @@ const DEFAULT_TRANSFORMS = ['f_auto', 'q_auto']
  * @param {number} [options.height] - Target height in pixels.
  * @param {string} [options.crop] - Crop mode, e.g. `fill`, `fit`.
  * @param {string} [options.gravity] - Focal point, e.g. `auto`, `face`.
+ * @param {string} [options.background] - Pad colour, e.g. `white`. Only
+ *   meaningful with a padding crop mode such as `pad`.
  * @param {string} [options.format] - Force an extension instead of `f_auto`.
  * @returns {string|null} The URL, or `null` when unconfigured or given no ID.
  */
 export function buildCloudinaryUrl(publicId, options = {}) {
   if (!isCloudinaryConfigured || !publicId) return null
 
-  const { width, height, crop, gravity, format } = options
+  const { width, height, crop, gravity, background, format } = options
 
   const transforms = [...DEFAULT_TRANSFORMS]
   if (width) transforms.push(`w_${width}`)
   if (height) transforms.push(`h_${height}`)
   if (crop) transforms.push(`c_${crop}`)
   if (gravity) transforms.push(`g_${gravity}`)
+  if (background) transforms.push(`b_${background}`)
 
   const encodedId = publicId.replace(/^\/+/, '')
   const suffix = format ? `.${format}` : ''

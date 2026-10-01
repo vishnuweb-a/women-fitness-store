@@ -183,6 +183,7 @@ When behaviour changes, update the affected file in the same change:
 | `docs/ARCHITECTURE.md` | Structure, routing, state, boundaries |
 | `docs/DESIGN_SYSTEM.md` | Tokens, assets, visual conventions |
 | `docs/PROJECT_SETUP.md` | Install, environment, integrations |
+| `docs/CATALOG.md` | Product data provenance, price units, Cloudinary upload pipeline |
 | `docs/SKILLS_INDEX.md` | Installed skills — update if `.agents/skills/` changes |
 | `README.md` | Orientation |
 

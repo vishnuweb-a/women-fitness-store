@@ -21,10 +21,39 @@ separate from `src/features/`.
 
 ### `banners/` — promotional artwork (originals, preserved)
 
-`banner1.png` … `banner9.png`. **Never edit or delete these.** Runtime copies
-live at `public/assets/banners/` and are served from `/assets/banners/*.png`.
+`banner1.png` … `banner9.png`. **Never edit or delete these.** Optimised WebP
+runtime copies live at `public/assets/banners/` and are served from
+`/assets/banners/*.webp`. Regenerate them with
+`python scripts/optimise-banners.py` after changing an original — the script
+reads `banners/` and writes `public/assets/banners/`, never the reverse.
 
-`banner1.png` is the home hero ("STRONGER EVERY DAY").
+Optimisation caps the long edge at 2000 px (banners never render wider than the
+80rem container) and encodes WebP at quality 82: **17.4 MB of PNG becomes
+1.04 MB**, which is the difference between an 18.4 MB and a 2.1 MB production
+build.
+
+All nine banners were inspected. Every one has **both a headline and a button
+shape baked into the pixels**:
+
+| File | Baked-in copy | Used as |
+|---|---|---|
+| `banner1` | "STRONGER EVERY DAY" + SHOP ACCESSORIES | Home hero |
+| `banner2` | "FIND YOUR MOVEMENT" + none | available |
+| `banner3` | "YOGA & PILATES" + Shop Collection | Sportswear tile, Sportswear category thumb |
+| `banner4` | "GYM BAGS" + Shop Collection | Accessories tile, Accessories category thumb |
+| `banner5` | "STRENGTH TRAINING" + Shop Collection | Equipment tile, Equipment category thumb |
+| `banner6` | "HYDRATION" + Shop Collection | Accessories tile |
+| `banner7` | "RECOVERY" + Shop Collection | available |
+| `banner8` | "OUTDOOR ESSENTIALS" + Shop Collection | available |
+| `banner9` | "GEAR UP FOR A STRONGER TOMORROW" + SHOP ALL ACCESSORIES | Home closing banner |
+
+Because the copy is already legible in the artwork, `PromotionalBanner` does
+**not** layer duplicate HTML text over these tiles — that would show the
+headline twice. Instead the image is decorative (`alt=""`, `aria-hidden`) and a
+single real `<Link>` wraps the tile, taking its accessible name from visually
+hidden text. The hero is the exception: `HeroBanner` crops `banner1` to its
+photographic side and renders the headline as a real `h1`, because a hero
+heading must be a real heading.
 
 > **Accessibility rule for banner art.** Several banners have headlines and
 > button shapes baked into the pixels. A picture of a button is not a button.
@@ -68,8 +97,12 @@ by adding `.dark` to `<html>`. It is defined but there is no UI toggle yet.
 | `--text-display-sm/md/lg` | `clamp()` ramps | Fluid headings |
 
 Fluid sizes always pair `vw` with `rem` so browser zoom keeps working.
-**Neither webfont is loaded yet** — both currently fall back to the system
-stack. Add `@font-face` or a Google Fonts link when the real screens land.
+
+**Both webfonts are loaded**, from Google Fonts in `index.html` with
+`preconnect` to `fonts.googleapis.com` and `fonts.gstatic.com` and
+`display=swap`: Inter (400/500/600/700) and Archivo (600/700/800/900). The
+`@theme` tokens keep the full system fallback stack, so text stays readable and
+correctly sized if the webfonts fail to load.
 
 ### Spacing, containers, radius
 
@@ -114,3 +147,54 @@ Animation library: **`motion`**, imported as `motion/react`.
 - One `h1` per page, supplied by `PageShell`; heading levels never skip.
 - Prefer Tailwind utilities in markup. Extract a component before writing a
   large custom CSS file; keep custom CSS global (resets and tokens only).
+
+### Storefront components (Phase 1)
+
+| Component | File | Notes |
+|---|---|---|
+| `AnnouncementBar` | `layout/site-header.jsx` | Exported from the header module |
+| `StoreHeader` | `layout/site-header.jsx` (`SiteHeader`) | Announcement, brand, search, account/wishlist/bag |
+| `DesktopNavigation` / `MobileNavigation` | `layout/site-header.jsx` | Category bar and Sheet, both from real categories |
+| `SearchPanel` | `layout/search-panel.jsx` | Combobox overlay over the real catalog |
+| `StoreFooter` | `layout/site-footer.jsx` (`SiteFooter`) | Newsletter, trust row, link columns |
+| `HeroBanner` | `shared/hero-banner.jsx` | Real `h1` over cropped artwork |
+| `CategoryCard` | `shared/category-card.jsx` | Circular rail tile |
+| `ProductCard` | `shared/product-card.jsx` | Compact tile |
+| `ProductGrid` | `shared/product-grid.jsx` | 2 / 3 / 4 columns |
+| `ProductImage` | `shared/product-image.jsx` | Stable dimensions, responsive `srcset`, error state |
+| `SectionHeading` | `shared/section-heading.jsx` | Title, subtitle, "view all" link |
+| `PromotionalBanner` | `shared/promotional-banner.jsx` | Decorative art + one real link |
+| `NewsletterForm` | `shared/newsletter-form.jsx` | Never claims a false success |
+
+#### Image ratios
+
+Catalog tiles use a fixed `aspect-[3/4]` box with `object-contain`, never
+`object-cover`. The catalog mixes apparel (shot tall on a model) with equipment
+(a badminton racquet, a cricket bat); cropping to fill would cut the product
+off. Cloudinary applies `c_pad,b_white` for the same reason, so the padding
+matches the light shopping surface. `width`/`height` are always emitted so no
+image causes layout shift.
+
+#### No nested interactive elements
+
+`ProductCard` keeps its link and its wishlist button as DOM **siblings**. The
+whole tile is still clickable via a stretched-link `::after` overlay on the
+title link (`z-10`), with the wishlist button raised above it (`z-20`). An
+anchor is never wrapped around a button.
+
+### Motion (Phase 1)
+
+All animation uses `motion/react` and moves only `opacity` and `transform`:
+
+| Where | Effect |
+|---|---|
+| Hero | Staggered entrance on the eyebrow, `h1`, subhead, buttons, and feature list |
+| Product grids | `whileInView` reveal, `once: true`, capped 40 ms stagger |
+| Product cards | 3 px hover lift plus a 1.04 image scale |
+| Search panel | Backdrop fade and panel slide, with `AnimatePresence` |
+
+Every one of these is gated on `useReducedMotion()`: when reduced motion is
+requested, `initial` is set to `false` so content renders in its final state
+and no animation runs. Verified in Chrome with `reducedMotion: 'reduce'` —
+`h1` opacity 1, `transform: none`, product cards opacity 1. There is no scroll
+hijacking anywhere.

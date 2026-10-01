@@ -6,9 +6,11 @@ E-commerce storefront for women's sports and fitness accessories.
 A React single-page application built with Vite, Tailwind CSS v4, and
 shadcn/ui, with Supabase as the intended data layer.
 
-> **Status: Phase 0 — project foundation.** This is a runnable shell with
-> routing, layout, and design tokens in place. The storefront screens are not
-> built yet, and **checkout and payment are not operational.** See
+> **Status: Phase 1 complete — landing page, navigation, and catalog.** The
+> home page, search, collection and product routes, and a browser-local cart
+> and wishlist are working against a real 44-product catalog with imagery
+> delivered by Cloudinary. **Checkout and payment are not operational**, and
+> there is no authentication or database schema. See
 > [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md).
 
 ## Quick start
@@ -27,6 +29,7 @@ Open the URL Vite prints (http://localhost:5173 by default).
 | `npm run build` | Production build to `dist/` |
 | `npm run preview` | Serve the production build |
 | `npm run lint` | ESLint |
+| `npm test` | Vitest (catalog normalisation and cart identity) |
 
 Requires Node.js 20.19+ and npm. **npm is the package manager** — do not add a
 second lockfile.
@@ -95,20 +98,38 @@ implemented: signing requires the API secret, which must stay server-side.
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Stack, directory layout, routing, state, boundaries |
 | [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) | Tokens, reference assets, visual conventions |
 | [docs/PROJECT_SETUP.md](docs/PROJECT_SETUP.md) | Install, environment, Supabase and Cloudinary detail |
+| [docs/CATALOG.md](docs/CATALOG.md) | Product data provenance, price units, Cloudinary pipeline |
 | [docs/SKILLS_INDEX.md](docs/SKILLS_INDEX.md) | The 17 skills in `.agents/skills/`, with caveats |
 
-## What Phase 0 completed
+## The catalog
 
-Project scaffolding, the full dependency stack, Tailwind v4 tokens, shadcn/ui
-in JavaScript mode, the `@/` alias, routing for all 11 routes, shared layout
-with accessible landmarks and a skip link, loading/error/empty/not-found
-components, an error boundary, the Supabase and Cloudinary client boundaries,
-ESLint, and the documentation set. Lint, build, and browser route rendering
+**44 products across 3 categories**, with 405 unique images. Data comes from a
+public marketplace scrape; `src/services/catalog.js` normalises it without
+rewriting it. Images are delivered by Cloudinary (406/406 uploaded) with the
+local files kept as a development fallback.
+
+Provenance, the price-unit decision, and the upload pipeline:
+[docs/CATALOG.md](docs/CATALOG.md).
+
+### What this storefront does not claim
+
+The catalog carries no inventory, no sales rank, no dates, and no FITNEX
+reviews — so the UI asserts none of those. Stock is shown as unknown, size and
+colour are presented as independent option lists, scraped ratings are labelled
+as marketplace listing ratings, curated sections use neutral titles rather than
+"Best Sellers", and newsletter sign-up says plainly that it is not connected.
+
+## What Phase 1 completed
+
+The landing page built from the reference screen, shared header and footer with
+working search, desktop and mobile navigation, reusable product and category
+components, Cloudinary image delivery with a local fallback, collection and
+product routes, and a persistent browser-local cart and wishlist. Lint, 20
+tests, the production build, and browser verification at 1440 / 768 / 390 px
 were all run and passed.
 
 ## What comes next
 
-**Phase 1: the landing page and shared storefront navigation** — building the
-home screen from the reference, completing the header and footer, and
-introducing the product card and grid. Details in
+**Phase 2: full collection and product-detail designs, variant selection, and
+the complete cart UI.** Details in
 [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md).

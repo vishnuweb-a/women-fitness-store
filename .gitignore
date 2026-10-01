@@ -37,3 +37,13 @@ Thumbs.db
 *.local
 .eslintcache
 coverage/
+
+# Product image binaries. 406 scraped JPEGs (~66 MB) served from Cloudinary in
+# production and kept locally only as a development fallback. The catalog source
+# (src/data/products.js) and the public delivery manifest
+# (src/data/cloudinary-manifest.json) ARE tracked — only the binaries are not.
+public/assets/products/
+
+# Private Cloudinary upload checkpoint: resumable upload state, not a
+# deliverable. The public manifest in src/data/ carries the safe metadata.
+.cloudinary-upload-checkpoint.json

@@ -37,16 +37,28 @@ src/
     home/ collections/ catalog/ product/ cart/ checkout/ account/ orders/
   hooks/          shared custom hooks
   lib/            env, supabase, cloudinary, query-client, utils
-  services/       data access — Supabase queries live here, not in components
-  data/           static/seed data and constants
+  services/       data access — catalog.js, plus Supabase queries when they exist
+  data/           generated catalog + public Cloudinary delivery manifest
   styles/         globals.css (tokens, base layer, custom utilities)
   main.jsx        entry point
 
-public/assets/banners/   runtime copies of the banner art
+scripts/                 SERVER-SIDE Node/Python tooling — never imported by src/
+public/assets/banners/   optimised WebP runtime copies of the banner art
+public/assets/products/  406 scraped product images (git-ignored, dev fallback)
 banners/                 ORIGINAL artwork — preserve, never edit
 pages/                   visual references — not route components
 docs/                    this documentation
 ```
+
+### `scripts/` is server-side only
+
+`scripts/upload-products-to-cloudinary.mjs` reads the Cloudinary API secret
+through `scripts/lib/cloudinary-credentials.js`. **Nothing under `src/` may
+import from `scripts/`.** The server-side `cloudinary` SDK is deliberately not
+installed; the script signs uploads with `node:crypto` and posts with `fetch`,
+so no credentialed dependency can be pulled into the browser bundle. ESLint
+gives `scripts/**` Node globals and exempts it from the secret-reading rule
+that applies to browser code.
 
 ### Boundaries
 
@@ -67,16 +79,16 @@ are consistent.
 
 | Path | Component | Status |
 |---|---|---|
-| `/` | `HomePage` | Hero implemented; sections placeholdered |
-| `/collections` | `CollectionsPage` | Placeholder |
-| `/collections/:slug` | `CollectionDetailPage` | Placeholder |
-| `/products/:slug` | `ProductDetailPage` | Placeholder |
-| `/cart` | `CartPage` | Empty state only |
+| `/` | `HomePage` | **Implemented** — full landing page from the reference |
+| `/collections` | `CollectionsPage` | **Implemented** — category tiles + full catalog grid |
+| `/collections/:slug` | `CollectionDetailPage` | **Implemented** — listing; filters/sorting are Phase 2 |
+| `/products/:slug` | `ProductDetailPage` | **Implemented** — gallery, options, add-to-bag; full design is Phase 2 |
+| `/cart` | `CartPage` | **Implemented** — local lines, quantities, totals. Checkout button disabled |
 | `/checkout` | `CheckoutPage` | Placeholder — **not operational** |
 | `/checkout/payment` | `PaymentPage` | Placeholder — **not operational** |
 | `/orders/:id/confirmation` | `OrderConfirmationPage` | Placeholder |
 | `/account` | `AccountPage` | Placeholder — no auth |
-| `/wishlist` | `WishlistPage` | Empty state only |
+| `/wishlist` | `WishlistPage` | **Implemented** — browser-local saved products |
 | `*` | `NotFoundPage` | Working |
 
 `errorElement` renders `RouteError`, which distinguishes a 404 from a thrown
@@ -93,11 +105,41 @@ Because this is a SPA, a deep link served by a static host needs a rewrite to
 | Server data | TanStack Query. Query keys namespaced by feature. |
 | URL state | React Router params and search params — filters and pagination belong in the URL so listings are shareable. |
 | Local UI state | `useState` / `useReducer`, co-located. |
-| Cross-cutting client state (cart) | Not yet chosen. Decide when the cart is built; React Context is sufficient unless profiling says otherwise. |
+| Cross-cutting client state (cart, wishlist) | React Context — `StoreProvider` in `features/cart/cart-store.jsx`, consumed via the `useStore` hook. Persisted to `localStorage`. |
 
 Query defaults: 60s `staleTime`, 5min `gcTime`, one retry, no refetch on window
 focus. The client is created inside `useState` in `providers.jsx` so it is
 constructed exactly once.
+
+### Cart and wishlist
+
+`features/cart/` is split three ways so that Fast Refresh keeps working
+(a module exporting both components and non-components breaks it):
+
+| File | Exports |
+|---|---|
+| `cart-store.jsx` | `StoreProvider` — the component |
+| `store-context.js` | `StoreContext`, `lineKey` |
+| `use-store.js` | the `useStore` hook |
+
+**Only product IDs, selected options, and quantities are persisted.** Names,
+prices, and images are always derived from the catalog at render time, so a
+catalog change is picked up immediately and a stale price can never be shown.
+
+Cart line identity is `productId::size::color` (`lineKey`), so the same product
+in two sizes is two lines. State is browser-local and reserves no stock.
+
+## Catalog and images
+
+Components never import `src/data/products.js` directly. `services/catalog.js`
+normalises it into a stable shape (integer paise, ordered galleries, friendly
+category labels, explicit `availability: 'unknown'`) while preserving the
+generated file's exported interface.
+
+`lib/product-images.js` resolves each image through
+`data/cloudinary-manifest.json`, falling back to the local
+`/assets/products/...` path. See [`CATALOG.md`](./CATALOG.md) for provenance,
+the price-unit decision, and the upload pipeline.
 
 ## Error handling
 

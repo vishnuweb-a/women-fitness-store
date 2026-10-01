@@ -88,39 +88,93 @@ call `requireSupabase()`.
 
 ## Cloudinary
 
-**Verified**: the cloud name is present in the local configuration and the URL
-builder is implemented and exercised by the build.
-**Not verified**: no asset has been fetched from Cloudinary — nothing has been
-uploaded to it yet, so there is nothing to request. The storefront shell uses
-the local banner files instead.
+**Verified on 2026-10-02:** all **406** product images were uploaded to the
+configured account and all **405** catalog image references resolve through the
+delivery manifest. Three representative transformed URLs were fetched and
+returned HTTP 200 (`image/jpeg`, 15–41 kB each). Delivery is live.
+
+### Credentials
+
+The upload script resolves credentials from the pre-existing `.env`, whose keys
+are irregular (`cloud name`, `api key `, `api secret`, and a line reading
+`cloudnary url  : CLOUDINARY_URL=...`). `scripts/lib/cloudinary-credentials.js`
+parses them tolerantly — lowercasing keys and stripping spaces, underscores and
+colons — and also accepts `CLOUDINARY_URL` or the standard
+`CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET`
+environment variables. It reports which values resolved **without printing any
+of them**.
+
+Only the **cloud name** is public, exposed to the browser as
+`VITE_CLOUDINARY_CLOUD_NAME`. The API key and secret are read by the Node
+script alone and verified absent from `dist/`.
+
+### Running an upload
+
+```bash
+node scripts/upload-products-to-cloudinary.mjs             # upload
+node scripts/upload-products-to-cloudinary.mjs --dry-run   # plan only
+node scripts/upload-products-to-cloudinary.mjs --limit 20  # first N files
+```
+
+The script walks `public/assets/products/**`, uploads each unique file once
+into the `fitnex-women/products` namespace, and writes
+`src/data/cloudinary-manifest.json`.
+
+| Safeguard | Implementation |
+|---|---|
+| Idempotent | Deterministic public ID: slugified path + 8-char hash of the path |
+| No overwriting | `overwrite=false` — an existing remote asset is returned, never replaced |
+| No deletion | The script has no delete path |
+| Resumable | `.cloudinary-upload-checkpoint.json` (git-ignored); a re-run skips successes and retries only failures |
+| Bounded load | Concurrency 6; up to 4 attempts with exponential backoff; permanent 4xx not retried |
+| Accurate failures | Each failure is recorded with its error and whether it is permanent |
+
+It is a plain Node script using `node:crypto` and `fetch`. **The server-side
+`cloudinary` SDK is deliberately not installed**, so no credentialed dependency
+can be pulled into the browser bundle. Nothing in `src/` may import from
+`scripts/`.
+
+### Delivery
 
 [`src/lib/cloudinary.js`](../src/lib/cloudinary.js) builds delivery URLs from
-the public cloud name and an asset public ID, with `f_auto,q_auto` defaults and
-a `srcset` helper. It has no dependencies by design.
+the public cloud name, with `f_auto,q_auto` defaults and a `srcset` helper.
+[`src/lib/product-images.js`](../src/lib/product-images.js) resolves catalog
+images through the manifest and **falls back to the local
+`/assets/products/...` path** when an image is absent from it, so development
+works with or without Cloudinary.
 
-**Uploads are deliberately not implemented.** Signing an upload needs the API
-secret, which cannot be given to a browser. When uploads are needed, either:
+Catalog transforms add `c_pad,b_white` — padding, not cropping, so a racquet or
+a cricket bat is never cut off — across `srcset` widths 240/360/480/720/960.
 
-1. **Preferred** — add a Supabase Edge Function that signs the upload
-   server-side and returns the signature to the client. The secret stays on
-   the server.
-2. Or use an unsigned upload preset, *only* if it is tightly restricted:
-   fixed folder, allow-listed formats, size cap, and rate limiting. No such
-   preset has been verified to exist for this account.
+### Browser uploads
 
-Do not install the server-side `cloudinary` SDK into this React app.
+Still not implemented, and still should not be: signing needs the API secret.
+If user uploads are ever required, sign them in a Supabase Edge Function, or
+use a tightly restricted unsigned preset (fixed folder, allow-listed formats,
+size cap). No such preset has been verified for this account.
 
 ## Assets
 
 | Location | Contents | Rule |
 |---|---|---|
 | `banners/` | 9 original promotional PNGs | Preserve. Never edit or delete. |
-| `public/assets/banners/` | Copies served at `/assets/banners/*.png` | Safe to regenerate from `banners/` |
+| `public/assets/banners/` | Optimised WebP served at `/assets/banners/*.webp` | Regenerate with `python scripts/optimise-banners.py` |
+| `public/assets/products/` | 406 scraped product images | **Git-ignored.** Dev fallback only; production uses Cloudinary |
 | `pages/` | 8 screen references across 3 PNGs | Reference only; never imported by the app |
 
-The banner PNGs are large (~1.8–2.2 MB each). Before the storefront ships,
-compress them or serve them through Cloudinary with `f_auto,q_auto` and a
-responsive `srcset` — `buildCloudinarySrcSet()` already exists for this.
+Banner optimisation (`scripts/optimise-banners.py`, needs Pillow) caps the long
+edge at 2000 px and encodes WebP at quality 82: **17.4 MB → 1.04 MB**. The
+originals in `banners/` are read, never written.
+
+### Production build size
+
+`public/` is copied verbatim into `dist/`, which would add ~66 MB of product
+JPEGs that production never requests. A Vite plugin in `vite.config.js` removes
+`dist/assets/products` after the build, bringing `dist/` to **2.1 MB**.
+
+To ship the local images instead — if Cloudinary delivery is ever disabled —
+set `VITE_SHIP_LOCAL_PRODUCT_IMAGES=true` and accept roughly 66 MB of extra
+build output.
 
 ## Verification performed
 

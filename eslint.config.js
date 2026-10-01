@@ -81,4 +81,18 @@ export default [
       globals: { ...globals.node },
     },
   },
+  {
+    // `scripts/` holds server-side Node tooling (the Cloudinary uploader).
+    // It never ships to the browser, so it gets Node globals rather than DOM
+    // ones — and it is allowed to read secrets, which browser code is not.
+    files: ['scripts/**/*.{js,mjs}'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: { ...globals.node },
+    },
+    rules: {
+      'no-restricted-syntax': 'off',
+    },
+  },
 ]

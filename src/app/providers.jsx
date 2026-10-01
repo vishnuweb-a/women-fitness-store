@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { QueryClientProvider } from '@tanstack/react-query'
 
 import { ErrorBoundary } from '@/components/shared/error-boundary'
+import { StoreProvider } from '@/features/cart/cart-store'
 import { createQueryClient } from '@/lib/query-client'
 
 /**
@@ -16,7 +17,9 @@ export function AppProviders({ children }) {
 
   return (
     <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        <StoreProvider>{children}</StoreProvider>
+      </QueryClientProvider>
     </ErrorBoundary>
   )
 }
