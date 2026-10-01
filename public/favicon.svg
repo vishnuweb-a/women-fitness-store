@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="FITNEX">
+  <rect width="64" height="64" rx="12" fill="#141414"/>
+  <!-- The angular double-chevron from the FITNEX lockup: a forward stroke in
+       the brand red over a charcoal tile, legible down to 16px. -->
+  <path d="M10 42 L26 18 L34 30 L28 38 L24 32 L18 42 Z" fill="#e0243a"/>
+  <path d="M30 42 L46 18 L54 18 L38 42 Z" fill="#f5f5f5"/>
+</svg>

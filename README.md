@@ -6,11 +6,14 @@ E-commerce storefront for women's sports and fitness accessories.
 A React single-page application built with Vite, Tailwind CSS v4, and
 shadcn/ui, with Supabase as the intended data layer.
 
-> **Status: Phase 1 complete — landing page, navigation, and catalog.** The
-> home page, search, collection and product routes, and a browser-local cart
-> and wishlist are working against a real 44-product catalog with imagery
-> delivered by Cloudinary. **Checkout and payment are not operational**, and
-> there is no authentication or database schema. See
+> **Status: Phase 2 complete — collections, product detail, and the cart.**
+> The home page, search, a fully filterable collection listing, product detail
+> with a keyboard-accessible gallery, and a persistent browser-local cart and
+> wishlist all work against a real 44-product catalog with imagery delivered by
+> Cloudinary. Filters, sorting, and pagination live in the URL, so a listing is
+> shareable and back/forward behave. **Checkout and payment are not
+> operational**, stock is unknown for every product, and there is no
+> authentication or database schema. See
 > [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md).
 
 ## Quick start
@@ -123,13 +126,34 @@ as marketplace listing ratings, curated sections use neutral titles rather than
 
 The landing page built from the reference screen, shared header and footer with
 working search, desktop and mobile navigation, reusable product and category
-components, Cloudinary image delivery with a local fallback, collection and
-product routes, and a persistent browser-local cart and wishlist. Lint, 20
-tests, the production build, and browser verification at 1440 / 768 / 390 px
-were all run and passed.
+components, Cloudinary image delivery, collection and product routes, and a
+persistent browser-local cart and wishlist.
+
+## What Phase 2 completed
+
+The full collection experience — breadcrumbs, category banner, result count, a
+desktop filter rail and a mobile filter Sheet, sorting, a responsive grid,
+pagination, and an empty state — with filters, sorting, and pagination all held
+in URL search parameters. The complete product page, including a thumbnail
+gallery with a roving-tabindex keyboard contract and an accessible enlargement
+Dialog, specifications, required option selection, quantity, wishlist, and
+related products. The complete cart, with variant-aware line identity,
+move-to-wishlist, a merchandise subtotal, and recovery from corrupt or stale
+stored data including migration of Phase 1 carts. Route-level code splitting, a
+shipped image fallback that works in production, and a favicon.
+
+Lint, **83 tests**, the production build, and a **48-check browser suite** at
+1440 / 768 / 390 px were all run and passed, with no console errors and no
+credential in the build output.
+
+Filters only exist where the catalog supports them. There is no stock,
+discount, rating, or "new in" filter, no sales-rank sorting, no reviews, no
+delivery promise, and no grand total — because the source data supports none of
+those, and inventing them would be the easiest way to make this storefront
+dishonest.
 
 ## What comes next
 
-**Phase 2: full collection and product-detail designs, variant selection, and
-the complete cart UI.** Details in
-[docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md).
+**Phase 3: a Supabase schema with RLS, real variant availability, and moving
+the catalog behind a query** — the prerequisites for an honest checkout.
+Details in [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md).

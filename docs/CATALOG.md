@@ -94,6 +94,41 @@ by a test:
   field. Curated sections use neutral titles ("Featured products", "More to
   explore") that the data supports.
 
+## Querying the catalog (Phase 2)
+
+Filtering, sorting, and pagination live in
+[`src/services/catalog-query.js`](../src/services/catalog-query.js), kept pure
+so the listing contract is testable without rendering. The constraints above
+decide what it may offer:
+
+| Offered | Backed by |
+|---|---|
+| Category filter | `categorySlug` — one of the three canonical slugs |
+| Brand filter | `brand` (17 distinct values) |
+| Price filter | `pricePaise`, bucketed into five brackets over the real 199–12,499 range |
+| Listed-size filter | `sizes[]` |
+| Listed-colour filter | `colors[]` |
+| Sort: price asc/desc, name A-Z/Z-A | `pricePaise`, `name` |
+| Sort: "Featured" | Catalog order — **not** a sales rank, and labelled neutrally |
+
+**Not offered, because nothing supports it:** availability or in-stock filters,
+rating thresholds, discount or "on sale" filters, "new in" or arrival-date
+sorting, and best-selling or popularity sorting.
+
+The size and colour filters match products that *list* an option. Because the
+source gives sizes and colours as independent lists, this is not an
+availability claim, and the filter rail says so beneath both groups.
+
+Every sort ends in a slug tiebreak, so the order is total: equal prices or
+equal names never leave the sequence to the engine's sort stability, and a
+reload reproduces the same page exactly.
+
+Every URL parameter is normalised on read. An unknown category, brand, bracket,
+size, colour, or sort key is dropped; a non-numeric, zero, negative, or
+fractional page falls back to 1; an out-of-range page is clamped to the last
+real page and the URL corrected with a `replace`. A hand-edited URL therefore
+cannot produce a broken listing.
+
 ## Image delivery
 
 ### Cloudinary
@@ -137,8 +172,7 @@ Re-run it with `node scripts/upload-products-to-cloudinary.mjs`. Use
 dimensions, and format. It contains no credential.
 
 [`src/lib/product-images.js`](../src/lib/product-images.js) resolves each
-catalog image through the manifest and falls back to the local
-`/assets/products/...` path when an image is absent from it. Transforms are
+catalog image through the manifest. Transforms are
 `f_auto,q_auto` (automatic format and quality) plus `c_pad,b_white` for catalog
 imagery — padding rather than cropping, because a badminton racquet or a
 cricket bat must not be cut off to fit an apparel-shaped tile. Responsive
@@ -160,6 +194,31 @@ development works with or without Cloudinary.
 If Cloudinary delivery is ever disabled, set
 `VITE_SHIP_LOCAL_PRODUCT_IMAGES=true` to ship the local fallback instead and
 accept roughly 66 MB of additional build output.
+
+### The fallback chain (corrected in Phase 2)
+
+Phase 1 fell back from a failed Cloudinary URL to the local
+`/assets/products/...` path. **That path does not exist in production** — the
+plugin above removes it — so the fallback was guaranteed to 404, and the second
+failure re-entered the same error handler.
+
+`components/shared/product-image.jsx` now walks a finite chain, each stage
+firing at most once:
+
+1. the Cloudinary delivery URL;
+2. **in development only**, the local file (the dev server does serve it, which
+   is useful when Cloudinary is unconfigured or offline);
+3. `/assets/product-placeholder.svg` — a neutral mark that lives outside
+   `assets/products/` and so genuinely ships in `dist/`;
+4. a CSS-only box, which issues no request and cannot fail in turn.
+
+The placeholder stage carries no `onError` handler, so the chain cannot loop.
+Its `alt` text names the product and states that the image is unavailable,
+rather than letting a placeholder silently stand in for the product.
+
+Verified by aborting every `res.cloudinary.com` request in a headless browser
+against the production preview: the placeholder rendered and **0 images were
+broken**.
 
 ## Version control
 

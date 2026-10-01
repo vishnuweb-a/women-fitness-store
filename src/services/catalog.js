@@ -29,34 +29,17 @@ import {
   products as sourceProducts,
 } from '@/data/products'
 import { resolveProductImage } from '@/lib/product-images'
+import { CATEGORY_META } from '@/services/category-meta'
 
-/** Canonical category slugs, with the friendly labels used in navigation. */
-export const CATEGORY_META = {
-  'women-sportswear-clothing': {
-    slug: 'women-sportswear-clothing',
-    label: 'Sportswear',
-    longLabel: 'Sportswear Clothing',
-    productType: 'clothing',
-    description: 'Jackets, tops, tights and training layers built to move with you.',
-    banner: '/assets/banners/banner3.webp',
-  },
-  'women-sports-equipments': {
-    slug: 'women-sports-equipments',
-    label: 'Equipment',
-    longLabel: 'Sports Equipment',
-    productType: 'equipment',
-    description: 'Rackets, bats, rollers and training gear for every session.',
-    banner: '/assets/banners/banner5.webp',
-  },
-  'women-sports-accessories': {
-    slug: 'women-sports-accessories',
-    label: 'Accessories',
-    longLabel: 'Sports Accessories',
-    productType: 'accessory',
-    description: 'Bags, gloves, socks and the small gear that carries the work.',
-    banner: '/assets/banners/banner4.webp',
-  },
-}
+/**
+ * Canonical category metadata.
+ *
+ * Defined in `category-meta.js`, which carries no product import, so the site
+ * header and footer can build navigation without pulling the generated catalog
+ * into the initial bundle of every route. Re-exported here so existing
+ * `@/services/catalog` imports keep working.
+ */
+export { CATEGORY_META } from '@/services/category-meta'
 
 /** Gallery ordering used by the scraper: front → model → side → back → detail. */
 const VIEW_ORDER = ['front', 'model', 'side', 'back', 'detail']

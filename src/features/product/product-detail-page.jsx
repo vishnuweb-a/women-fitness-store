@@ -1,42 +1,76 @@
-import { useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { Check, Heart, Info } from 'lucide-react'
+import { Check, Heart, Info, ShieldQuestion } from 'lucide-react'
 
+import { Breadcrumbs } from '@/components/shared/breadcrumbs'
 import { EmptyState } from '@/components/shared/empty-state'
-import { ProductImage } from '@/components/shared/product-image'
+import { ProductGrid } from '@/components/shared/product-grid'
+import { QuantityStepper } from '@/components/shared/quantity-stepper'
+import { SectionHeading } from '@/components/shared/section-heading'
 import { Button } from '@/components/ui/button'
 import { useStore } from '@/features/cart/use-store'
-import { formatPrice, getProductBySlug } from '@/services/catalog'
+import { ProductGallery } from '@/features/product/product-gallery'
+import { getRelatedProducts } from '@/services/catalog-query'
+import { CATEGORY_META, formatPrice, getProductBySlug } from '@/services/catalog'
 import { cn } from '@/lib/utils'
 
 /**
  * Product detail.
  *
- * Minimal but functional: gallery, price, description, supplied options, and a
- * working add-to-bag. The full reference layout (specifications tabs, reviews,
- * related products, delivery check) belongs to the product-detail phase.
+ * The layout follows the product reference — breadcrumbs, gallery with
+ * thumbnails and enlargement, name/brand/price, options, quantity, add to bag,
+ * wishlist, specifications, related products.
  *
- * Honesty constraints enforced here:
- *   - Size and colour are **independent option lists** from the source. The UI
- *     says so and never implies a given combination is in stock.
- *   - Stock is unknown; no "In stock" badge is shown.
- *   - The scraped rating is labelled as a marketplace listing rating, not a
- *     FITNEX verified-buyer review.
+ * What the reference shows and this page deliberately omits, because the
+ * catalog carries no data behind any of it:
+ *
+ *   - **No "In stock" badge, delivery estimate, or pincode check.** Stock is
+ *     unknown for every product.
+ *   - **No customer reviews or star summary.** FITNEX has collected none. The
+ *     scraped marketplace rating is shown only with its origin stated.
+ *   - **No "Buy now".** Checkout is not operational; a second checkout-shaped
+ *     button would be a lie.
+ *   - **No size chart, care instructions, shipping policy, or guarantee tabs**
+ *     beyond the specification fields the source actually supplies.
+ *
+ * Selected options are stored as the catalog's own labels. They are not SKU
+ * identifiers: the source lists sizes and colours independently and never says
+ * which combinations exist.
+ *
+ * The route keys this page on the slug (`router.jsx`), so navigating to a
+ * different product mounts a fresh component rather than carrying one
+ * product's size, colour, and quantity selections into another.
  */
 export function ProductDetailPage() {
   const { slug } = useParams()
   const product = getProductBySlug(slug)
 
   const { addToCart, isWishlisted, toggleWishlist } = useStore()
-  const [activeImage, setActiveImage] = useState(0)
   const [size, setSize] = useState(null)
   const [color, setColor] = useState(null)
+  const [quantity, setQuantity] = useState(1)
   const [error, setError] = useState(null)
-  const [added, setAdded] = useState(false)
+  const [added, setAdded] = useState(null)
+  const quantityId = useId()
+
+  // Clear the "added" confirmation after a while so it does not linger.
+  useEffect(() => {
+    if (!added) return undefined
+    const timer = window.setTimeout(() => setAdded(null), 6000)
+    return () => window.clearTimeout(timer)
+  }, [added])
 
   if (!product) {
     return (
       <div className="container-site py-section">
+        <Breadcrumbs
+          items={[
+            { label: 'Home', to: '/' },
+            { label: 'Collections', to: '/collections' },
+            { label: 'Not found' },
+          ]}
+          className="mb-6"
+        />
         <h1 className="font-display text-display-sm font-extrabold tracking-tight">
           Product not available
         </h1>
@@ -56,8 +90,16 @@ export function ProductDetailPage() {
   }
 
   // Clothing is sized; equipment and accessories in this catalog are not.
-  const requiresSize = product.productType === 'clothing' && product.sizes.length > 0
+  // A single listed option is not a choice — it is applied automatically.
+  const requiresSize = product.productType === 'clothing' && product.sizes.length > 1
   const requiresColor = product.colors.length > 1
+  const singleSize = product.sizes.length === 1 ? product.sizes[0] : null
+  const singleColor = product.colors.length === 1 ? product.colors[0] : null
+
+  const categoryMeta = CATEGORY_META[product.categorySlug]
+  const related = getRelatedProducts(product, { limit: 4 })
+  const wishlisted = isWishlisted(product.id)
+  const price = formatPrice(product.pricePaise, product.currency)
 
   function handleAddToCart() {
     if (requiresSize && !size) {
@@ -70,67 +112,47 @@ export function ProductDetailPage() {
     }
 
     setError(null)
+    const selectedSize = size ?? singleSize
+    const selectedColor = color ?? singleColor
+
     addToCart({
       productId: product.id,
-      size: size ?? (product.sizes.length === 1 ? product.sizes[0] : null),
-      color: color ?? (product.colors.length === 1 ? product.colors[0] : null),
-      quantity: 1,
+      size: selectedSize,
+      color: selectedColor,
+      quantity,
     })
-    setAdded(true)
-    window.setTimeout(() => setAdded(false), 4000)
+
+    setAdded({ quantity, size: selectedSize, color: selectedColor })
   }
 
-  const wishlisted = isWishlisted(product.id)
-  const price = formatPrice(product.pricePaise, product.currency)
-  const image = product.images[activeImage] ?? product.primaryImage
+  const specifications = [
+    ['Brand', product.brand],
+    ['Category', product.categoryLabel],
+    ['Material', product.material],
+    ['Fit', product.fit],
+    ['Pattern', product.pattern],
+    ['Sport', product.sport],
+    ['Care', product.careInstructions],
+  ].filter(([, value]) => Boolean(value))
 
   return (
-    <div className="container-site py-section">
-      <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
-        {/* Gallery */}
-        <div className="flex flex-col-reverse gap-3 sm:flex-row">
-          {!product.hasSingleImage && (
-            <ul
-              aria-label="Product images"
-              className="flex gap-2 overflow-x-auto sm:flex-col sm:overflow-y-auto"
-            >
-              {product.images.slice(0, 8).map((item, index) => (
-                <li key={item.localSrc}>
-                  <button
-                    type="button"
-                    onClick={() => setActiveImage(index)}
-                    aria-label={item.alt}
-                    aria-current={index === activeImage}
-                    className={cn(
-                      'size-16 shrink-0 overflow-hidden rounded-control border-2 bg-muted transition-colors',
-                      index === activeImage ? 'border-brand-500' : 'border-border',
-                    )}
-                  >
-                    <ProductImage
-                      image={{ ...item, alt: '' }}
-                      sizes="64px"
-                      className="size-full object-contain"
-                    />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
+    <div className="container-site py-8 sm:py-10">
+      <Breadcrumbs
+        items={[
+          { label: 'Home', to: '/' },
+          { label: 'Collections', to: '/collections' },
+          ...(categoryMeta
+            ? [{ label: categoryMeta.longLabel, to: `/collections/${product.categorySlug}` }]
+            : []),
+          { label: product.name },
+        ]}
+        className="mb-6"
+      />
 
-          <div className="flex-1 overflow-hidden rounded-card border border-border bg-muted">
-            <div className="aspect-[3/4]">
-              <ProductImage
-                image={image}
-                priority
-                sizes="(min-width: 1024px) 480px, 100vw"
-                className="size-full object-contain"
-              />
-            </div>
-          </div>
-        </div>
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-12">
+        <ProductGallery product={product} />
 
-        {/* Details */}
-        <div>
+        <div className="min-w-0">
           {product.brand && (
             <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
               {product.brand}
@@ -141,8 +163,17 @@ export function ProductDetailPage() {
             {product.name}
           </h1>
 
+          <p className="mt-2 text-sm text-muted-foreground">
+            <Link
+              to={`/collections/${product.categorySlug}`}
+              className="hover:text-brand-600 hover:underline underline-offset-2"
+            >
+              {product.categoryLabel}
+            </Link>
+          </p>
+
           {price && (
-            <p className="mt-4 text-2xl font-bold tabular-nums text-ink-950">{price}</p>
+            <p className="mt-4 text-3xl font-bold tabular-nums text-ink-950">{price}</p>
           )}
           <p className="mt-1 text-xs text-muted-foreground">Inclusive of all taxes</p>
 
@@ -155,82 +186,67 @@ export function ProductDetailPage() {
                 <span className="font-semibold tabular-nums text-ink-800">
                   {product.sourceRating.value.toFixed(1)}/5
                 </span>{' '}
-                by {product.sourceRating.count.toLocaleString('en-IN')} shoppers on
-                the original marketplace listing. FITNEX has not collected its own
-                reviews for this product.
+                by {product.sourceRating.count.toLocaleString('en-IN')} shoppers on the
+                original marketplace listing. FITNEX has not collected its own reviews
+                for this product.
               </span>
             </p>
           )}
 
-          {/* Options. Independent lists — a pairing is not an availability claim. */}
+          {/* Colour. Independent of size — a pairing is not an availability claim. */}
           {product.colors.length > 0 && (
-            <fieldset className="mt-6">
-              <legend className="text-sm font-semibold">
-                Colour{requiresColor && <span aria-hidden="true"> *</span>}
-                {!requiresColor && (
-                  <span className="ml-2 font-normal text-muted-foreground">
-                    {product.colors[0]}
-                  </span>
-                )}
-              </legend>
-              {requiresColor && (
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {product.colors.map((option) => (
-                    <button
-                      key={option}
-                      type="button"
-                      onClick={() => {
-                        setColor(option)
-                        setError(null)
-                      }}
-                      aria-pressed={color === option}
-                      className={cn(
-                        'min-h-11 rounded-control border px-4 text-sm transition-colors',
-                        color === option
-                          ? 'border-brand-500 bg-brand-50 font-semibold text-brand-700'
-                          : 'border-border hover:border-ink-400',
-                      )}
-                    >
-                      {option}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </fieldset>
+            <OptionGroup
+              legend="Colour"
+              required={requiresColor}
+              options={product.colors}
+              selected={requiresColor ? color : singleColor}
+              onSelect={(value) => {
+                setColor(value)
+                setError(null)
+              }}
+              readOnly={!requiresColor}
+            />
           )}
 
           {product.sizes.length > 0 && (
-            <fieldset className="mt-6">
-              <legend className="text-sm font-semibold">
-                Size{requiresSize && <span aria-hidden="true"> *</span>}
-              </legend>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {product.sizes.map((option) => (
-                  <button
-                    key={option}
-                    type="button"
-                    onClick={() => {
-                      setSize(option)
-                      setError(null)
-                    }}
-                    aria-pressed={size === option}
-                    className={cn(
-                      'min-h-11 min-w-11 rounded-control border px-4 text-sm transition-colors',
-                      size === option
-                        ? 'border-brand-500 bg-brand-50 font-semibold text-brand-700'
-                        : 'border-border hover:border-ink-400',
-                    )}
-                  >
-                    {option}
-                  </button>
-                ))}
-              </div>
-              <p className="mt-2 text-xs text-muted-foreground text-pretty">
-                Sizes and colours are listed independently by the supplier. We
-                cannot confirm which combinations are available.
-              </p>
-            </fieldset>
+            <OptionGroup
+              legend="Size"
+              required={requiresSize}
+              options={product.sizes}
+              selected={requiresSize ? size : singleSize}
+              onSelect={(value) => {
+                setSize(value)
+                setError(null)
+              }}
+              readOnly={!requiresSize}
+            />
           )}
+
+          {(product.sizes.length > 0 || product.colors.length > 0) && (
+            <p className="mt-3 flex gap-2 text-xs text-muted-foreground">
+              <ShieldQuestion
+                className="mt-0.5 size-3.5 shrink-0"
+                aria-hidden="true"
+                focusable="false"
+              />
+              <span className="text-pretty">
+                Sizes and colours are supplied as independent lists. We cannot confirm
+                which size and colour combinations exist, and stock levels are not
+                available for this catalog.
+              </span>
+            </p>
+          )}
+
+          <div className="mt-6">
+            <p className="text-sm font-semibold">Quantity</p>
+            <QuantityStepper
+              value={quantity}
+              onChange={setQuantity}
+              label={product.name}
+              inputId={quantityId}
+              className="mt-2"
+            />
+          </div>
 
           {error && (
             <p role="alert" className="mt-4 text-sm font-medium text-brand-600">
@@ -257,11 +273,23 @@ export function ProductDetailPage() {
             </Button>
           </div>
 
-          <p role="status" className="mt-3 min-h-5 text-sm">
+          {/*
+            One polite live region for the add-to-bag result. A single status
+            node that is always in the DOM means the message is announced once,
+            rather than the region being announced as it mounts and again as it
+            fills.
+          */}
+          <p role="status" aria-live="polite" className="mt-3 min-h-10 text-sm">
             {added && (
-              <span className="flex items-center gap-1.5 font-medium text-success">
-                <Check className="size-4" aria-hidden="true" focusable="false" />
-                Added to your bag.{' '}
+              <span className="flex flex-wrap items-center gap-x-1.5 gap-y-1 font-medium text-success">
+                <Check className="size-4 shrink-0" aria-hidden="true" focusable="false" />
+                Added {added.quantity} {added.quantity === 1 ? 'item' : 'items'}
+                {[added.color, added.size].filter(Boolean).length > 0 && (
+                  <span className="font-normal text-ink-700">
+                    ({[added.color, added.size].filter(Boolean).join(', ')})
+                  </span>
+                )}{' '}
+                to your bag.
                 <Link to="/cart" className="underline underline-offset-2">
                   View bag
                 </Link>
@@ -269,41 +297,118 @@ export function ProductDetailPage() {
             )}
           </p>
 
-          <p className="mt-2 text-xs text-muted-foreground text-pretty">
-            Adding an item saves it in this browser only. It does not reserve
-            stock, and stock levels are not available for this catalog.
+          <p className="mt-1 text-xs text-muted-foreground text-pretty">
+            Your bag is saved in this browser only. Adding an item does not reserve
+            stock, and checkout is not operational.
           </p>
 
           {product.description && (
-            <section className="mt-8 border-t border-border pt-6">
-              <h2 className="text-sm font-semibold uppercase tracking-wide">
-                Product details
+            <section aria-labelledby="product-description" className="mt-8 border-t border-border pt-6">
+              <h2
+                id="product-description"
+                className="text-sm font-semibold uppercase tracking-wide"
+              >
+                Description
               </h2>
               <p className="mt-2 text-sm leading-relaxed text-ink-700 text-pretty">
                 {product.description}
               </p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Supplied by the original product listing.
+              </p>
             </section>
           )}
 
-          <dl className="mt-6 grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
-            {[
-              ['Category', product.categoryLabel],
-              ['Material', product.material],
-              ['Fit', product.fit],
-              ['Pattern', product.pattern],
-              ['Sport', product.sport],
-              ['Care', product.careInstructions],
-            ]
-              .filter(([, value]) => Boolean(value))
-              .map(([label, value]) => (
-                <div key={label}>
-                  <dt className="text-muted-foreground">{label}</dt>
-                  <dd className="font-medium text-ink-800">{value}</dd>
-                </div>
-              ))}
-          </dl>
+          {specifications.length > 0 && (
+            <section aria-labelledby="product-specs" className="mt-6 border-t border-border pt-6">
+              <h2 id="product-specs" className="text-sm font-semibold uppercase tracking-wide">
+                Specifications
+              </h2>
+              <dl className="mt-3 grid grid-cols-1 gap-x-6 gap-y-0 sm:grid-cols-2">
+                {specifications.map(([label, value]) => (
+                  <div
+                    key={label}
+                    className="flex justify-between gap-4 border-b border-border py-2 text-sm last:border-b-0"
+                  >
+                    <dt className="text-muted-foreground">{label}</dt>
+                    <dd className="text-right font-medium text-ink-800">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+              <p className="mt-3 text-xs text-muted-foreground text-pretty">
+                Only the specifications supplied with the product listing are shown.
+                Measurements, care guidance, and warranty terms were not supplied and
+                are not shown rather than estimated.
+              </p>
+            </section>
+          )}
         </div>
       </div>
+
+      {related.length > 0 && (
+        <section aria-labelledby="related-products" className="mt-14 border-t border-border pt-10">
+          <SectionHeading
+            id="related-products"
+            title="More in this category"
+            subtitle={`Other ${product.categoryLabel.toLowerCase()} from the catalog.`}
+          />
+          <ProductGrid products={related} className="mt-6" columns={4} />
+        </section>
+      )}
     </div>
+  )
+}
+
+/**
+ * A listed-option group.
+ *
+ * When only one option is listed there is nothing to choose: it is shown as
+ * text rather than a single pre-selected button that looks interactive. When
+ * there are several, each is a toggle button carrying `aria-pressed`, grouped
+ * in a `fieldset` whose `legend` names the group.
+ */
+function OptionGroup({ legend, options, selected, onSelect, required, readOnly }) {
+  if (readOnly) {
+    return (
+      <p className="mt-6 text-sm">
+        <span className="font-semibold">{legend}:</span>{' '}
+        <span className="text-ink-700">{options[0]}</span>
+      </p>
+    )
+  }
+
+  return (
+    <fieldset className="mt-6">
+      <legend className="text-sm font-semibold">
+        {legend}
+        {required && (
+          <>
+            <span aria-hidden="true"> *</span>
+            <span className="sr-only"> (required)</span>
+          </>
+        )}
+        {selected && (
+          <span className="ml-2 font-normal text-muted-foreground">{selected}</span>
+        )}
+      </legend>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {options.map((option) => (
+          <button
+            key={option}
+            type="button"
+            onClick={() => onSelect(option)}
+            aria-pressed={selected === option}
+            className={cn(
+              'min-h-11 min-w-11 rounded-control border px-4 text-sm transition-colors',
+              selected === option
+                ? 'border-brand-500 bg-brand-50 font-semibold text-brand-700'
+                : 'border-border hover:border-ink-400',
+            )}
+          >
+            {option}
+          </button>
+        ))}
+      </div>
+    </fieldset>
   )
 }

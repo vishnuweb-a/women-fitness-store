@@ -28,7 +28,7 @@ newer major. Revisit when the plugin adds support.
 
 ```
 src/
-  app/            App.jsx, router.jsx, providers.jsx — composition root
+  app/            App.jsx, router.jsx, lazy-routes.jsx, providers.jsx — composition root
   components/
     ui/           shadcn/ui primitives (generated; edit in place to customise)
     layout/       site-header, site-footer, root-layout
@@ -37,12 +37,15 @@ src/
     home/ collections/ catalog/ product/ cart/ checkout/ account/ orders/
   hooks/          shared custom hooks
   lib/            env, supabase, cloudinary, query-client, utils
-  services/       data access — catalog.js, plus Supabase queries when they exist
+  services/       data access — catalog.js, catalog-query.js, category-meta.js,
+                  plus Supabase queries when they exist
   data/           generated catalog + public Cloudinary delivery manifest
   styles/         globals.css (tokens, base layer, custom utilities)
   main.jsx        entry point
 
 scripts/                 SERVER-SIDE Node/Python tooling — never imported by src/
+public/favicon.svg       site icon (FITNEX chevron mark)
+public/assets/product-placeholder.svg  shipped image fallback — never stripped
 public/assets/banners/   optimised WebP runtime copies of the banner art
 public/assets/products/  406 scraped product images (git-ignored, dev fallback)
 banners/                 ORIGINAL artwork — preserve, never edit
@@ -80,10 +83,10 @@ are consistent.
 | Path | Component | Status |
 |---|---|---|
 | `/` | `HomePage` | **Implemented** — full landing page from the reference |
-| `/collections` | `CollectionsPage` | **Implemented** — category tiles + full catalog grid |
-| `/collections/:slug` | `CollectionDetailPage` | **Implemented** — listing; filters/sorting are Phase 2 |
-| `/products/:slug` | `ProductDetailPage` | **Implemented** — gallery, options, add-to-bag; full design is Phase 2 |
-| `/cart` | `CartPage` | **Implemented** — local lines, quantities, totals. Checkout button disabled |
+| `/collections` | `CollectionsPage` | **Implemented** — category tiles plus a fully filterable catalog listing |
+| `/collections/:slug` | `CollectionDetailPage` | **Implemented** — scoped listing with filters, sorting, and pagination in the URL |
+| `/products/:slug` | `ProductDetailPage` | **Implemented** — gallery with enlargement, options, quantity, wishlist, specifications, related products. Keyed on the slug so a different product mounts fresh |
+| `/cart` | `CartPage` | **Implemented** — lines, quantities, remove, move-to-wishlist, merchandise subtotal, unavailable-line recovery. Checkout button disabled |
 | `/checkout` | `CheckoutPage` | Placeholder — **not operational** |
 | `/checkout/payment` | `PaymentPage` | Placeholder — **not operational** |
 | `/orders/:id/confirmation` | `OrderConfirmationPage` | Placeholder |
@@ -92,8 +95,38 @@ are consistent.
 | `*` | `NotFoundPage` | Working |
 
 `errorElement` renders `RouteError`, which distinguishes a 404 from a thrown
-error. Pages are imported eagerly; add `React.lazy` route splitting once the
-real screens grow.
+error.
+
+### Code splitting
+
+The homepage is imported eagerly — it is the most common entry point, and
+lazily loading the route people usually land on only adds a round-trip. Every
+other route is `React.lazy`, declared in `src/app/lazy-routes.jsx` (kept apart
+from `router.jsx` so one module exports only components and the other only the
+router, which Fast Refresh requires). Each lazy route renders inside
+`RouteFallback`.
+
+Splitting the routes alone moved almost nothing, which was measured rather
+than assumed: the site header renders on every page and its search panel read
+the catalog, so the catalog loaded everywhere regardless. Two further changes
+were needed:
+
+- `src/services/category-meta.js` holds the category slugs, labels, copy, and
+  banner paths with **no product import**, so the header and footer build
+  navigation without pulling in the catalog;
+- the search panel is itself lazy (`lazy-search-panel.jsx`), so the catalog is
+  fetched when search is first opened rather than on every route.
+
+`manualChunks` in `vite.config.js` then pins everything under `src/data/` to a
+single `catalog` chunk and splits React into `react-vendor`. Without the first
+rule the bundler is free to inline a copy of the catalog into several route
+chunks, so a visitor browsing three routes would download it three times.
+
+The catalog still reaches the initial load on every route, deliberately:
+`StoreProvider` derives cart display data and the header badge count from it at
+render time, which is what stops a stale persisted price ever being shown. It
+is 392 kB raw but 21.7 kB gzip / 15.9 kB brotli. See `PROJECT_STATUS.md` for
+the full before/after measurements.
 
 Because this is a SPA, a deep link served by a static host needs a rewrite to
 `index.html`. `vite preview` and `vite dev` handle this already.
@@ -126,8 +159,27 @@ constructed exactly once.
 prices, and images are always derived from the catalog at render time, so a
 catalog change is picked up immediately and a stale price can never be shown.
 
-Cart line identity is `productId::size::color` (`lineKey`), so the same product
-in two sizes is two lines. State is browser-local and reserves no stock.
+Cart line identity is the product plus its selected options (`lineKey`), so the
+same product in two sizes is two lines. Each segment is JSON-encoded before
+joining: encoding "no option" as a bare `-` let a product whose colour is
+literally named `-` collide with one that had no colour selected.
+
+Reading, validating, and migrating the persisted value lives in
+`features/cart/cart-storage.js`, separately from the provider so the rules can
+be tested directly. It:
+
+- stores a versioned envelope (`fitnex:cart:v2`) and **migrates Phase 1
+  (`fitnex:cart:v1`) carts forward** rather than discarding them;
+- validates every field, repairing an out-of-range quantity and discarding a
+  non-string option label instead of letting either reach the line key;
+- merges duplicate lines by summing quantities;
+- recovers from absent, unparseable, wrong-shaped, or throwing storage by
+  starting empty rather than raising.
+
+A line whose product is no longer in the catalog is kept in storage but
+reported separately as unavailable — never priced, never silently deleted.
+
+State is browser-local and reserves no stock.
 
 ## Catalog and images
 
@@ -137,9 +189,26 @@ category labels, explicit `availability: 'unknown'`) while preserving the
 generated file's exported interface.
 
 `lib/product-images.js` resolves each image through
-`data/cloudinary-manifest.json`, falling back to the local
-`/assets/products/...` path. See [`CATALOG.md`](./CATALOG.md) for provenance,
-the price-unit decision, and the upload pipeline.
+`data/cloudinary-manifest.json`. `components/shared/product-image.jsx` then
+applies a **finite** fallback chain, each stage firing at most once:
+
+1. the Cloudinary delivery URL;
+2. **in development only**, the local `/assets/products/...` file;
+3. the shipped `/assets/product-placeholder.svg`;
+4. a CSS-only box, which makes no request and so cannot fail in turn.
+
+Stage 2 is skipped in production because the Vite plugin strips
+`dist/assets/products`, so the Phase 1 behaviour of falling back to a local path
+was guaranteed to 404 and then re-enter the same error handler. The placeholder
+stage carries no `onError`, so the chain cannot loop. Its `alt` text names the
+product *and* says the image is unavailable.
+
+Listing queries — filtering, total ordering, pagination, and the URL-param
+contract — live in `services/catalog-query.js`, deliberately pure so the whole
+listing behaviour is testable without rendering.
+
+See [`CATALOG.md`](./CATALOG.md) for provenance, the price-unit decision, and
+the upload pipeline.
 
 ## Error handling
 

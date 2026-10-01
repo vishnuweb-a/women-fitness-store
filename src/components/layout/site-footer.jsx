@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { CreditCard, PackageCheck, RotateCcw, ShieldCheck } from 'lucide-react'
 
 import { NewsletterForm } from '@/components/shared/newsletter-form'
-import { catalogCategories } from '@/services/catalog'
+import { CATEGORY_NAV } from '@/services/category-meta'
 
 /**
  * Footer, following the reference layout: a newsletter strip, a trust row,
@@ -17,7 +17,7 @@ const FOOTER_SECTIONS = [
     heading: 'Shop',
     links: [
       { label: 'All products', to: '/collections' },
-      ...catalogCategories.map((category) => ({
+      ...CATEGORY_NAV.map((category) => ({
         label: category.label,
         to: `/collections/${category.slug}`,
       })),

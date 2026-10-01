@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="600" viewBox="0 0 480 600" role="img" aria-label="Product image unavailable">
+  <rect width="480" height="600" fill="#f5f5f5"/>
+  <g fill="none" stroke="#c9c9c9" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="160" y="212" width="160" height="128" rx="10"/>
+    <path d="M160 300l44-38 38 32 34-28 44 38"/>
+    <circle cx="206" cy="250" r="12"/>
+  </g>
+  <text x="240" y="392" font-family="Inter, Segoe UI, system-ui, sans-serif" font-size="20" fill="#8a8a8a" text-anchor="middle">Image unavailable</text>
+  <text x="240" y="420" font-family="Inter, Segoe UI, system-ui, sans-serif" font-size="16" fill="#a8a8a8" text-anchor="middle">FITNEX WOMEN</text>
+</svg>

@@ -11,7 +11,7 @@ import {
   User,
 } from 'lucide-react'
 
-import { SearchPanel } from '@/components/layout/search-panel'
+import { LazySearchPanel } from '@/components/layout/lazy-search-panel'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -21,7 +21,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 import { useStore } from '@/features/cart/use-store'
-import { catalogCategories } from '@/services/catalog'
+import { CATEGORY_NAV } from '@/services/category-meta'
 import { cn } from '@/lib/utils'
 
 /**
@@ -35,7 +35,7 @@ import { cn } from '@/lib/utils'
  */
 const NAV_ITEMS = [
   { label: 'Shop All', to: '/collections' },
-  ...catalogCategories.map((category) => ({
+  ...CATEGORY_NAV.map((category) => ({
     label: category.label,
     to: `/collections/${category.slug}`,
   })),
@@ -240,7 +240,7 @@ export function SiteHeader() {
         </ul>
       </nav>
 
-      <SearchPanel open={searchOpen} onOpenChange={setSearchOpen} />
+      <LazySearchPanel open={searchOpen} onOpenChange={setSearchOpen} />
     </header>
   )
 }

@@ -6,62 +6,60 @@
  * all. The UI must never imply otherwise.
  *
  * Persistence stores only what cannot be derived: product IDs, the selected
- * options, and quantities. Names, prices, and images are always looked up from
- * the catalog at render time, so a catalog change is reflected immediately and
- * a stale price can never be shown.
+ * option labels, and quantities. Names, prices, and images are always looked
+ * up from the catalog at render time, so a catalog change is reflected
+ * immediately and a stale price can never be shown. Reading, validating, and
+ * migrating that stored value is `cart-storage.js`.
  *
  * Cart identity is the product ID plus the selected size and colour, so the
  * same product in two sizes is two lines.
+ *
+ * A line whose product is no longer in the catalog is kept in storage but is
+ * reported separately as an "unavailable" line rather than being rendered as a
+ * priced item or silently deleted — the person can see what happened and
+ * remove it themselves.
  */
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
+import {
+  readCart,
+  readWishlist,
+  writeCart,
+  writeWishlist,
+  MAX_QUANTITY,
+} from '@/features/cart/cart-storage'
 import { lineKey, StoreContext } from '@/features/cart/store-context'
 import { getProductById } from '@/services/catalog'
 
-const CART_KEY = 'fitnex:cart:v1'
-const WISHLIST_KEY = 'fitnex:wishlist:v1'
-
-/** Read a JSON array from localStorage, tolerating absence and corruption. */
-function readStored(key, fallback) {
-  if (typeof window === 'undefined') return fallback
-  try {
-    const raw = window.localStorage.getItem(key)
-    if (!raw) return fallback
-    const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? parsed : fallback
-  } catch {
-    return fallback
-  }
-}
-
-function writeStored(key, value) {
-  if (typeof window === 'undefined') return
-  try {
-    window.localStorage.setItem(key, JSON.stringify(value))
-  } catch {
-    // Private browsing or a full quota — the cart still works for this session.
-  }
-}
-
 export function StoreProvider({ children }) {
-  const [cartLines, setCartLines] = useState(() => readStored(CART_KEY, []))
-  const [wishlistIds, setWishlistIds] = useState(() => readStored(WISHLIST_KEY, []))
+  const [cartLines, setCartLines] = useState(() => readCart(lineKey).lines)
+  const [wishlistIds, setWishlistIds] = useState(() => readWishlist())
 
-  useEffect(() => writeStored(CART_KEY, cartLines), [cartLines])
-  useEffect(() => writeStored(WISHLIST_KEY, wishlistIds), [wishlistIds])
+  useEffect(() => writeCart(cartLines), [cartLines])
+  useEffect(() => writeWishlist(wishlistIds), [wishlistIds])
 
   const addToCart = useCallback(({ productId, size = null, color = null, quantity = 1 }) => {
+    const amount = Number.isFinite(quantity) ? Math.max(1, Math.round(quantity)) : 1
     const key = lineKey({ productId, size, color })
+
     setCartLines((lines) => {
       const existing = lines.find((line) => lineKey(line) === key)
       if (existing) {
         return lines.map((line) =>
           lineKey(line) === key
-            ? { ...line, quantity: Math.min(line.quantity + quantity, 99) }
+            ? { ...line, quantity: Math.min(line.quantity + amount, MAX_QUANTITY) }
             : line,
         )
       }
-      return [...lines, { productId: String(productId), size, color, quantity }]
+      return [
+        ...lines,
+        {
+          productId: String(productId),
+          size: size ?? null,
+          color: color ?? null,
+          quantity: Math.min(amount, MAX_QUANTITY),
+        },
+      ]
     })
   }, [])
 
@@ -70,7 +68,9 @@ export function StoreProvider({ children }) {
   }, [])
 
   const setQuantity = useCallback((key, quantity) => {
-    const next = Math.max(0, Math.min(Math.round(quantity), 99))
+    const next = Number.isFinite(quantity)
+      ? Math.max(0, Math.min(Math.round(quantity), MAX_QUANTITY))
+      : 1
     setCartLines((lines) =>
       next === 0
         ? lines.filter((line) => lineKey(line) !== key)
@@ -88,26 +88,54 @@ export function StoreProvider({ children }) {
     [wishlistIds],
   )
 
+  /**
+   * Move a line to the wishlist: save the product, then drop the line.
+   *
+   * The wishlist holds products, not variants, so the selected size and colour
+   * are intentionally not carried over — there is nowhere honest to put them.
+   */
+  const moveToWishlist = useCallback((key) => {
+    setCartLines((lines) => {
+      const line = lines.find((entry) => lineKey(entry) === key)
+      if (line) {
+        const id = String(line.productId)
+        setWishlistIds((ids) => (ids.includes(id) ? ids : [...ids, id]))
+      }
+      return lines.filter((entry) => lineKey(entry) !== key)
+    })
+  }, [])
+
+  const clearCart = useCallback(() => setCartLines([]), [])
+
   // Display data is derived from the catalog, never from storage.
-  const cartItems = useMemo(
-    () =>
-      cartLines
-        .map((line) => {
-          const product = getProductById(line.productId)
-          if (!product) return null
-          const unitPaise = product.pricePaise ?? 0
-          return {
-            key: lineKey(line),
-            line,
-            product,
-            quantity: line.quantity,
-            unitPaise,
-            subtotalPaise: unitPaise * line.quantity,
-          }
-        })
-        .filter(Boolean),
-    [cartLines],
-  )
+  const { cartItems, unavailableItems } = useMemo(() => {
+    const items = []
+    const unavailable = []
+
+    for (const line of cartLines) {
+      const key = lineKey(line)
+      const product = getProductById(line.productId)
+
+      if (!product) {
+        unavailable.push({ key, line, quantity: line.quantity })
+        continue
+      }
+
+      const unitPaise = product.pricePaise ?? 0
+      items.push({
+        key,
+        line,
+        product,
+        quantity: line.quantity,
+        unitPaise,
+        // Integer paise throughout: an integer price times an integer
+        // quantity stays exact. No float arithmetic touches a money value.
+        subtotalPaise: unitPaise * line.quantity,
+      })
+    }
+
+    return { cartItems: items, unavailableItems: unavailable }
+  }, [cartLines])
 
   const wishlistItems = useMemo(
     () => wishlistIds.map((id) => getProductById(id)).filter(Boolean),
@@ -117,11 +145,16 @@ export function StoreProvider({ children }) {
   const value = useMemo(
     () => ({
       cartItems,
+      unavailableItems,
+      // The header badge counts units of real products, so it always matches
+      // what the cart page prices.
       cartCount: cartItems.reduce((total, item) => total + item.quantity, 0),
       cartSubtotalPaise: cartItems.reduce((total, item) => total + item.subtotalPaise, 0),
       addToCart,
       removeFromCart,
       setQuantity,
+      moveToWishlist,
+      clearCart,
       wishlistItems,
       wishlistCount: wishlistItems.length,
       toggleWishlist,
@@ -129,10 +162,13 @@ export function StoreProvider({ children }) {
     }),
     [
       cartItems,
+      unavailableItems,
       wishlistItems,
       addToCart,
       removeFromCart,
       setQuantity,
+      moveToWishlist,
+      clearCart,
       toggleWishlist,
       isWishlisted,
     ],

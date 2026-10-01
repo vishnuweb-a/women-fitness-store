@@ -57,4 +57,33 @@ export default defineConfig({
       '@': path.resolve(rootDir, './src'),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        /**
+         * Keep the catalog in exactly one chunk.
+         *
+         * `src/data/products.js` and the Cloudinary manifest are ~440 kB of
+         * source between them. Route-level code splitting alone does not take
+         * them out of the initial load — the header search and the homepage
+         * both read the catalog on first paint — but without a rule here the
+         * bundler is free to inline a copy into several route chunks, so a
+         * visitor who browses three routes downloads the catalog three times.
+         *
+         * Pinning it to one `catalog` chunk means it is fetched and parsed
+         * once and every lazy route reuses it. `react-vendor` is split out for
+         * the same reason: it is stable across deploys and cacheable
+         * independently of application code.
+         */
+        manualChunks(id) {
+          const normalised = id.split(path.sep).join('/')
+          if (normalised.includes('/src/data/')) return 'catalog'
+          if (/\/node_modules\/(react|react-dom|scheduler|react-router)/.test(normalised)) {
+            return 'react-vendor'
+          }
+          return undefined
+        },
+      },
+    },
+  },
 })

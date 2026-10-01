@@ -2,15 +2,17 @@ import { Link, useParams } from 'react-router-dom'
 
 import { EmptyState } from '@/components/shared/empty-state'
 import { PageShell } from '@/components/shared/page-shell'
-import { ProductGrid } from '@/components/shared/product-grid'
 import { Button } from '@/components/ui/button'
-import { getCategory, getProductsByCategory } from '@/services/catalog'
+import { CollectionListing } from '@/features/catalog/collection-listing'
+import { getCategory } from '@/services/catalog'
 
 /**
- * Products in one category.
+ * One category's listing — filters, sorting, and pagination all driven by the
+ * URL. The category itself is fixed by the route, so it is not a filter here.
  *
- * Minimal by design: filters, sorting, and pagination belong to the collection
- * phase. This route exists so navigation and product links resolve now.
+ * `key` on the listing forces a fresh instance when the slug changes, so
+ * navigating between categories cannot carry one category's listing state into
+ * another.
  */
 export function CollectionDetailPage() {
   const { slug } = useParams()
@@ -35,17 +37,19 @@ export function CollectionDetailPage() {
     )
   }
 
-  const products = getProductsByCategory(category.slug)
-
   return (
-    <PageShell
+    <CollectionListing
+      key={category.slug}
+      scopeCategory={category.slug}
       title={category.longLabel}
       description={category.description}
-    >
-      <p className="-mt-4 mb-6 text-sm text-muted-foreground tabular-nums">
-        {products.length} {products.length === 1 ? 'product' : 'products'}
-      </p>
-      <ProductGrid products={products} />
-    </PageShell>
+      banner={category.banner}
+      resetTo={`/collections/${category.slug}`}
+      breadcrumbs={[
+        { label: 'Home', to: '/' },
+        { label: 'Collections', to: '/collections' },
+        { label: category.longLabel },
+      ]}
+    />
   )
 }
