@@ -3,7 +3,7 @@
 E-commerce storefront for women's sports and fitness accessories.
 *Stronger Every Day.*
 
-A React single-page application built with Vite, Tailwind CSS v4, and
+A React single-page application built with Vite, Tailwind CSS v4, and its very mordern 
 shadcn/ui, with Supabase as the intended data layer.
 
 > **Status: Phase 5 complete — the frontend demonstration is finished.**
