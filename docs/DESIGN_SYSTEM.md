@@ -39,9 +39,9 @@ shape baked into the pixels**:
 |---|---|---|
 | `banner1` | "STRONGER EVERY DAY" + SHOP ACCESSORIES | Home hero |
 | `banner2` | "FIND YOUR MOVEMENT" + none | available |
-| `banner3` | "YOGA & PILATES" + Shop Collection | Sportswear tile, Sportswear category thumb |
-| `banner4` | "GYM BAGS" + Shop Collection | Accessories tile, Accessories category thumb |
-| `banner5` | "STRENGTH TRAINING" + Shop Collection | Equipment tile, Equipment category thumb |
+| `banner3` | "YOGA & PILATES" + Shop Collection | Home tile, Collections tile, Sportswear category thumb |
+| `banner4` | "GYM BAGS" + Shop Collection | Home tile, Collections tile, Accessories category thumb |
+| `banner5` | "STRENGTH TRAINING" + Shop Collection | Home tile, Collections tile, Equipment category thumb |
 | `banner6` | "HYDRATION" + Shop Collection | Accessories tile |
 | `banner7` | "RECOVERY" + Shop Collection | available |
 | `banner8` | "OUTDOOR ESSENTIALS" + Shop Collection | available |
@@ -55,13 +55,29 @@ hidden text. The hero is the exception: `HeroBanner` crops `banner1` to its
 photographic side and renders the headline as a real `h1`, because a hero
 heading must be a real heading.
 
-> **Accessibility rule for banner art.** Several banners have headlines and
-> button shapes baked into the pixels. A picture of a button is not a button.
-> Always render the headline and the call to action as real HTML on top of the
-> image, and give the decorative image `alt=""` with `aria-hidden="true"` so
-> the text is not announced twice. `src/features/home/home-page.jsx` is the
-> worked example. If an image must carry meaning on its own, write descriptive
-> `alt` text instead.
+The category tiles on `/collections` use `PromotionalBanner` for the same
+reason. They previously layered a heading, description, product count, arrow,
+and CTA over the art under a scrim, which left two sets of promotional text
+overlapping; the HTML layer was removed rather than the artwork.
+
+> **Accessibility rule for banner art.** A picture of a button is not a button,
+> so a banner tile must expose a **real** `<Link>` or `<button>` — never a
+> clickable `div` over a baked button shape — and the decorative image takes
+> `alt=""` with `aria-hidden="true"` so its wording is not announced.
+>
+> Whether the *visible* label is HTML depends on the artwork:
+>
+> - **Art without baked copy** → render the headline and call to action as real
+>   HTML over the image. This is the default convention in `AGENTS.md`.
+> - **Art with baked copy** (every banner in the table above) → do **not**
+>   layer duplicate HTML text or a scrim to hide the pixels. Use
+>   `PromotionalBanner`, which carries the accessible name in visually hidden
+>   text. `src/features/home/home-page.jsx` and
+>   `src/features/collections/collections-page.jsx` are the worked examples.
+>
+> The hero is the one exception: `HeroBanner` crops `banner1` to its
+> photographic side so the headline can be a real `h1`. If an image must carry
+> meaning on its own, write descriptive `alt` text instead.
 
 ## Tokens
 

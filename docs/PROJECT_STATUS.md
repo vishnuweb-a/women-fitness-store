@@ -199,17 +199,27 @@ every emitted file), so no route duplicates it.
 - **The shadcn CLI again emitted `import { cn } from "cn"`** and installed a
   bogus `cn` package, exactly as `AGENTS.md` warns. Both corrected.
 
-### Known cosmetic issue
+### Known cosmetic issue — resolved
 
 The collection banner artwork in `banners/` has promotional wording baked into
-the image across its full width. The project convention is that headings live
-in HTML over the art, so the category heading is layered on top under a
-left-to-right scrim. The scrim reduces the baked-in lettering to an unreadable
-texture but does not remove it — a faint fragment is still visible in the
-mid-band of the banner. It cannot be cropped out without ruining the
-photograph. **The real fix is clean, text-free banner artwork**, which is a
-design-asset task rather than a code change. Noted for a later phase; the
-originals in `banners/` were not modified.
+the image across its full width. The category tiles on `/collections` layered
+an HTML heading, description, product count, arrow, and CTA on top of that
+baked copy under a left-to-right scrim. The scrim reduced the baked lettering
+to a texture but did not remove it, so two sets of promotional text overlapped.
+
+**Resolved by removing the HTML overlay rather than the artwork.** The tiles
+now render through the existing `PromotionalBanner` component — the same
+image-only pattern the home page already uses for its collection banners: the
+art is decorative (`alt=""`, `aria-hidden`), a single `Link` covers the tile,
+and its accessible name ("Browse Sportswear Clothing") comes from visually
+hidden text. The scrim and every HTML text layer are gone, so nothing overlaps
+the baked wording.
+
+This is a deliberate, documented exception to the "promotional text belongs in
+HTML over the artwork" convention in `AGENTS.md`: it applies where the art is
+text-free, and these three banners are not. **Clean, text-free banner artwork
+remains the asset-side fix** that would allow the convention to apply here
+again. The originals in `banners/` were not modified.
 
 Screenshots are in [`docs/screenshots/`](./screenshots/), prefixed `phase2-`.
 
