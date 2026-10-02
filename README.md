@@ -6,19 +6,26 @@ E-commerce storefront for women's sports and fitness accessories.
 A React single-page application built with Vite, Tailwind CSS v4, and
 shadcn/ui, with Supabase as the intended data layer.
 
-> **Status: Phase 4 complete — customer pages, wishlist polish, and support
-> pages.** The home page, search, a fully filterable collection listing,
-> product detail with a keyboard-accessible gallery, and a persistent
-> browser-local cart and wishlist all work against a real 44-product catalog
-> with imagery delivered by Cloudinary. Filters, sorting, and pagination live
-> in the URL, so a listing is shareable and back/forward behave. Checkout,
-> billing, payment-method selection, and confirmation are built — but **as a
-> frontend demonstration only: no payment is taken, no order is created, and
-> no payment credential is collected anywhere.** The customer hub, profile and
-> address previews, demo order list, and the help and policy pages are built
-> too — **without authentication**, which does not exist in this build: the
-> previews are held in memory for one session and cleared on reload. Stock is
-> unknown for every product, and there is still no database schema. See
+> **Status: Phase 5 complete — the frontend demonstration is finished.**
+> The home page, search, a fully filterable collection listing, product detail
+> with a keyboard-accessible gallery, and a persistent browser-local cart and
+> wishlist all work against a real 44-product catalog with imagery delivered by
+> Cloudinary. Filters, sorting, and pagination live in the URL, so a listing is
+> shareable and back/forward behave. Checkout, billing, payment-method
+> selection, and confirmation are built — but **as a frontend demonstration
+> only: no payment is taken, no order is created, and no payment credential is
+> collected anywhere.** The customer hub, profile and address previews, demo
+> order list, and the help and policy pages are built too — **without
+> authentication**, which does not exist in this build: the previews are held
+> in memory for one session and cleared on reload. Stock is unknown for every
+> product, and there is still no database schema.
+>
+> Phase 5 audited all 24 route cases at four viewports, fixed 118 colour
+> contrast failures and the identical-`<title>`-on-every-route bug, and cut
+> home LCP by 60%. **234 tests, lint, and the production build all pass; axe
+> reports zero violations.** What was checked, what was fixed, and — just as
+> importantly — what was *not* verified are recorded in
+> [docs/FRONTEND_FINAL_QA.md](docs/FRONTEND_FINAL_QA.md). See also
 > [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) and
 > [docs/CUSTOMER_PAGES.md](docs/CUSTOMER_PAGES.md).
 
@@ -38,7 +45,7 @@ Open the URL Vite prints (http://localhost:5173 by default).
 | `npm run build` | Production build to `dist/` |
 | `npm run preview` | Serve the production build |
 | `npm run lint` | ESLint |
-| `npm test` | Vitest (catalog normalisation and cart identity) |
+| `npm test` | Vitest — 234 tests (catalog normalisation, cart identity, checkout and customer state, page titles) |
 
 Requires Node.js 20.19+ and npm. **npm is the package manager** — do not add a
 second lockfile.
@@ -117,6 +124,7 @@ implemented: signing requires the API secret, which must stay server-side.
 | [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) | Tokens, reference assets, visual conventions |
 | [docs/PROJECT_SETUP.md](docs/PROJECT_SETUP.md) | Install, environment, Supabase and Cloudinary detail |
 | [docs/CATALOG.md](docs/CATALOG.md) | Product data provenance, price units, Cloudinary pipeline |
+| [docs/FRONTEND_FINAL_QA.md](docs/FRONTEND_FINAL_QA.md) | Phase 5 QA: coverage, verified checks, bugs fixed, measurements, hosting requirements, and what was not verified |
 | [docs/SKILLS_INDEX.md](docs/SKILLS_INDEX.md) | The 17 skills in `.agents/skills/`, with caveats |
 
 ## The catalog
@@ -167,13 +175,59 @@ delivery promise, and no grand total — because the source data supports none o
 those, and inventing them would be the easiest way to make this storefront
 dishonest.
 
+## What Phase 5 completed
+
+A single sweep across every route rather than one feature: visual consistency,
+a complete navigation and interaction audit, a responsive and accessibility
+pass at 360 / 390 / 768 / 1440 px plus 200% zoom and reduced motion,
+measurement-led performance work, metadata and deployment readiness, and a
+truthfulness and privacy audit.
+
+Verified against the **production build**, in Chromium via Playwright with
+axe-core:
+
+- **96 route x viewport combinations** — 0 horizontal overflow, 0 console
+  errors, 0 page errors.
+- **axe-core: 0 violations** across 48 runs.
+- **53 internal links, 0 broken.**
+- **End-to-end journey 18/18**, including variant-aware cart lines, integer
+  paise subtotals, checkout step guards, and demo completion that does *not*
+  clear the cart.
+- **No personal data** in localStorage, sessionStorage, cookies, request URLs,
+  or request bodies. **No secret** in `dist/`.
+
+Fixed: 118 colour-contrast failures; an identical `<title>` and description on
+every route (plus three follow-on metadata bugs); home LCP **5292 ms ->
+2132 ms (-60%)** and collection **3816 ms -> 2404 ms (-37%)** on a throttled
+1.6 Mbps / 150 ms profile; and baked-in banner text that was legible beside a
+real HTML heading.
+
+Not verified, and recorded as such: no real screen reader, no Firefox or
+WebKit, no real device, no Lighthouse or field data. An automated accessibility
+pass does not prove accessibility. Full detail, including the accepted FCP
+trade-off and the SPA hosting rewrite required for deep links, is in
+[docs/FRONTEND_FINAL_QA.md](docs/FRONTEND_FINAL_QA.md).
+
 ## What comes next
 
-**Phase 5: final frontend polish and end-to-end QA** — one sweep across every
-route rather than one feature, then a full keyboard, screen-reader, and
-end-to-end run.
+**The frontend demonstration is complete. Everything remaining is backend
+work**, and none of it belongs in this bundle:
 
-After that, the backend work that still blocks an honest checkout: **a
-Supabase schema with RLS, authentication, real variant availability, and
-moving the catalog behind a query.** Details in
-[docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md).
+1. **A Supabase schema with RLS** — the `public` schema is still empty.
+2. **Authentication** — none exists, so the customer pages are previews.
+3. **Real variant availability** — size and colour are independent lists; which
+   combinations exist is unknown.
+4. **Moving the catalog behind a query** — it is a 392 kB client chunk today.
+5. **Order creation** — no order exists; a reload discards the demo snapshot.
+6. **A payment provider** — none is integrated, and no payment credential
+   should ever be collected here.
+7. **Real commercial and legal policy** — shipping, returns, privacy, and terms
+   are marked drafts or explicitly unset.
+8. **Prerendering or SSR** — a crawler that does not run JavaScript sees no
+   title and no content.
+
+Also outstanding as a design-asset task: **clean, text-free banner artwork.**
+Every banner carries baked-in promotional text that the scrim only mitigates,
+and the files are about 2.5x larger than they are displayed.
+
+Details in [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md).

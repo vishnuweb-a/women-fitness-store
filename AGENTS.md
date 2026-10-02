@@ -105,6 +105,17 @@ real heading and a real link or button on top.
   `RootLayout`.
 - Filters, sorting, and pagination belong in URL search params so listings are
   shareable and back/forward behave.
+- **Every route renders exactly one `PageMeta`** so it gets its own title and
+  description. Most inherit it from `PageShell`, `SupportLayout`,
+  `CustomerLayout`, or `CheckoutLayout`; a route that returns a guard branch
+  before reaching its layout needs its own. Do not add a second: React appends
+  hoisted metadata rather than replacing it, so duplicates ship. For the same
+  reason, never put a `<title>` or `<meta name="description">` back into
+  `index.html`. Detail: `docs/ARCHITECTURE.md`.
+- Demo and per-visitor routes (cart, checkout, confirmation, `/account/*`,
+  not-found) carry `noIndex`. Keep it.
+- **Do not invent a canonical URL, `og:url`, `og:image`, or a production
+  domain.** None exists.
 
 ### Styling
 
@@ -176,6 +187,17 @@ Before reporting work complete:
 **Never report a check as passed unless you ran it and it passed.** Report
 failures with their output.
 
+Phase 5 ran a browser audit harness (Playwright + axe-core, installed
+**outside** the repository so no test-only dependency entered
+`package.json`) against the production preview: 24 route cases x 4 viewports,
+an end-to-end journey, a keyboard/focus pass, and a privacy sweep. What it
+covered and what it did not is recorded in `docs/FRONTEND_FINAL_QA.md`. If you
+change routing, layout, or metadata, re-run an equivalent check rather than
+assuming the recorded result still holds.
+
+An automated accessibility pass does not prove accessibility. Do not claim it
+does.
+
 ## Documentation maintenance
 
 When behaviour changes, update the affected file in the same change:
@@ -189,6 +211,7 @@ When behaviour changes, update the affected file in the same change:
 | `docs/CATALOG.md` | Product data provenance, price units, Cloudinary upload pipeline |
 | `docs/CHECKOUT.md` | The demo checkout flow: what it does and does not do, and the backend seams |
 | `docs/CUSTOMER_PAGES.md` | Customer pages, session-only previews, wishlist, support and policy status |
+| `docs/FRONTEND_FINAL_QA.md` | Phase 5 QA: coverage, verified checks, bugs fixed, measurements, hosting requirements, and what was *not* verified |
 | `docs/SKILLS_INDEX.md` | Installed skills — update if `.agents/skills/` changes |
 | `README.md` | Orientation |
 

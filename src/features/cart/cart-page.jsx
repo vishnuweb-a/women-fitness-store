@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { ArrowLeft, Heart, Info, ShoppingBag, Trash2, TriangleAlert } from 'lucide-react'
 
 import { Breadcrumbs } from '@/components/shared/breadcrumbs'
+import { PageMeta } from '@/components/shared/page-meta'
 import { EmptyState } from '@/components/shared/empty-state'
 import { ProductImage } from '@/components/shared/product-image'
 import { QuantityStepper } from '@/components/shared/quantity-stepper'
@@ -62,6 +63,7 @@ export function CartPage() {
   if (cartItems.length === 0 && unavailableItems.length === 0) {
     return (
       <div className="container-site py-8 sm:py-10">
+        <PageMeta title="Your bag" description="The items saved in your shopping bag." noIndex />
         <Breadcrumbs items={breadcrumbs} className="mb-6" />
         <h1 className="font-display text-display-sm font-extrabold tracking-tight">Your bag</h1>
         <div className="mt-8">
@@ -82,6 +84,7 @@ export function CartPage() {
 
   return (
     <div className="container-site py-8 sm:py-10">
+      <PageMeta title="Your bag" description="The items saved in your shopping bag." noIndex />
       <Breadcrumbs items={breadcrumbs} className="mb-6" />
 
       <div className="flex flex-wrap items-baseline justify-between gap-3">

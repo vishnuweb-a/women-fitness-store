@@ -198,3 +198,29 @@ requested, `initial` is set to `false` so content renders in its final state
 and no animation runs. Verified in Chrome with `reducedMotion: 'reduce'` —
 `h1` opacity 1, `transform: none`, product cards opacity 1. There is no scroll
 hijacking anywhere.
+
+## Contrast: why `--primary` is `brand-600`, not `brand-500`
+
+Phase 5 measured every colour pair the UI actually renders, with axe-core
+across 48 route/viewport runs, and found **118 nodes below the WCAG AA 4.5:1
+minimum**. Two token changes fixed all of them.
+
+| Token | Was | Measured | Now | Measured |
+|---|---|---|---|---|
+| `--primary` (white text on it) | `brand-500` `#f52834` | **3.84:1** | `brand-600` `#de0019` | **4.88:1** |
+| `--muted-foreground` on `#f4f4f4` | `oklch(0.556)` `#737373` | **4.31:1** | `oklch(0.52)` `#696969` | **4.99:1** |
+
+`brand-500` remains in the ramp and is still correct for large text, for an
+icon, or as a fill behind dark text. **It is not safe behind white text at
+body or label size** — that is the combination that failed, and it is the
+combination primary buttons use.
+
+Three surfaces that set `bg-brand-500` with white text directly were moved to
+`brand-600` for the same reason: the header cart/wishlist count badge, the
+pagination current-page button, and the collection filter-count chip.
+
+If you add a new surface that puts white text on the brand red, use
+`brand-600` or darker.
+
+**The `.dark` block has never been contrast-checked.** No theme toggle ships,
+so only `:root` was audited. Audit the dark values before shipping a toggle.

@@ -1,5 +1,6 @@
 import { CategoryCard } from '@/components/shared/category-card'
 import { HeroBanner } from '@/components/shared/hero-banner'
+import { PageMeta } from '@/components/shared/page-meta'
 import { ProductGrid } from '@/components/shared/product-grid'
 import { PromotionalBanner } from '@/components/shared/promotional-banner'
 import { SectionHeading } from '@/components/shared/section-heading'
@@ -36,6 +37,9 @@ export function HomePage() {
 
   return (
     <div className="flex flex-col">
+      {/* No `title`: the home page keeps the default site title. */}
+      <PageMeta />
+
       <HeroBanner />
 
       {/* Category rail */}

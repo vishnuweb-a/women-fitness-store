@@ -18,6 +18,8 @@
 import { Info } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 
+import { PageMeta } from '@/components/shared/page-meta'
+
 import {
   CUSTOMER_NAV,
   CUSTOMER_NOTICE,
@@ -90,6 +92,8 @@ export function SessionNotice({ className, children = CUSTOMER_NOTICE }) {
 export function CustomerLayout({ title, description, children, notice = true }) {
   return (
     <div className="container-site py-8 sm:py-10">
+      {/* Session-only demo state — kept out of search results. */}
+      <PageMeta title={title} description={description} noIndex />
       <div className="grid gap-6 lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-10">
         <CustomerNav className="lg:sticky lg:top-24 lg:h-fit" />
 

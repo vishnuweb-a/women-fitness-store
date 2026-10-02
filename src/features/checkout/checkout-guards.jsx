@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { ShoppingBag, TriangleAlert } from 'lucide-react'
 
+import { PageMeta } from '@/components/shared/page-meta'
 import { Button } from '@/components/ui/button'
 import { DemoNotice } from '@/features/checkout/checkout-layout'
 
@@ -26,6 +27,7 @@ export function CheckoutBlocked({ title, reason, primaryTo, primaryLabel }) {
 
   return (
     <div className="container-site py-10 sm:py-14">
+      <PageMeta title={title} description={reason} noIndex />
       <div className="mx-auto max-w-xl">
         <DemoNotice />
         <div className="mt-6 flex flex-col items-center gap-3 rounded-card border border-dashed border-border px-6 py-12 text-center">

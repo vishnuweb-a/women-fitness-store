@@ -4,6 +4,7 @@ import { ListFilter, SlidersHorizontal, X } from 'lucide-react'
 
 import { Breadcrumbs } from '@/components/shared/breadcrumbs'
 import { EmptyState } from '@/components/shared/empty-state'
+import { PageMeta } from '@/components/shared/page-meta'
 import { Pagination } from '@/components/shared/pagination'
 import { ProductGrid } from '@/components/shared/product-grid'
 import { Button } from '@/components/ui/button'
@@ -67,6 +68,7 @@ export function CollectionListing({
 
   return (
     <div className="container-site py-8 sm:py-10">
+      <PageMeta title={title} description={description} />
       <Breadcrumbs items={breadcrumbs} className="mb-5" />
 
       <CollectionHeader title={title} description={description} banner={banner} />
@@ -132,7 +134,7 @@ export function CollectionListing({
                     <SlidersHorizontal className="size-4" aria-hidden="true" focusable="false" />
                     Filters
                     {activeFilterCount > 0 && (
-                      <span className="ml-0.5 inline-flex min-w-5 items-center justify-center rounded-full bg-brand-500 px-1.5 text-xs font-semibold tabular-nums text-white">
+                      <span className="ml-0.5 inline-flex min-w-5 items-center justify-center rounded-full bg-brand-600 px-1.5 text-xs font-semibold tabular-nums text-white">
                         {activeFilterCount}
                       </span>
                     )}
@@ -247,6 +249,17 @@ function CollectionHeader({ title, description, banner }) {
    * cannot be cropped out without ruining the photograph; the scrim reduces it
    * to an unreadable texture instead. Replacing these banners with clean,
    * text-free artwork is the real fix and is noted for a later phase.
+   *
+   * Phase 5 retuned the stops. At `from-45%`/`via-72%` the tail of banner5's
+   * baked tagline ("...confidence.") was still legible just right of the HTML
+   * heading. Pushing the opaque stop to 50% and the mid stop to 74% reduces it
+   * to a smudge. Going further (58%/80%) does hide it completely, but it also
+   * swallows the dumbbell and most of the figure, leaving a near-black box —
+   * a worse banner than the artifact it removes. These values are the point
+   * where the baked words stop being readable and the photograph survives.
+   *
+   * `object-right` is already the furthest-right crop available, so moving the
+   * crop cannot help; the scrim is the only lever short of new artwork.
    */
   return (
     <header className="relative isolate overflow-hidden rounded-card bg-ink-950">
@@ -260,7 +273,7 @@ function CollectionHeader({ title, description, banner }) {
       />
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-gradient-to-r from-ink-950 from-45% via-ink-950/92 via-72% to-ink-950/40"
+        className="absolute inset-0 bg-gradient-to-r from-ink-950 from-50% via-ink-950/88 via-74% to-ink-950/35"
       />
       <div className="relative px-6 py-10 sm:px-10 sm:py-14">
         <h1 className="max-w-lg font-display text-display-sm font-extrabold uppercase tracking-tight text-white text-balance">

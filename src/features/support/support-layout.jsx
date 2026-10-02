@@ -12,6 +12,7 @@
 import { FileClock, Info, TriangleAlert } from 'lucide-react'
 import { Link, NavLink } from 'react-router-dom'
 
+import { PageMeta } from '@/components/shared/page-meta'
 import { SUPPORT_NAV } from '@/features/support/support-nav'
 import { cn } from '@/lib/utils'
 
@@ -95,6 +96,7 @@ export function SupportSection({ id, title, children, className }) {
 export function SupportLayout({ title, description, status, children }) {
   return (
     <div className="container-site py-8 sm:py-10">
+      <PageMeta title={title} description={description} />
       <div className="grid gap-6 lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-10">
         <nav aria-label="Help and support" className="min-w-0 lg:sticky lg:top-24 lg:h-fit">
           <ul className="flex gap-1 overflow-x-auto pb-1 lg:flex-col lg:gap-0.5 lg:overflow-visible lg:pb-0">

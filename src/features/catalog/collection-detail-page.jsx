@@ -23,6 +23,7 @@ export function CollectionDetailPage() {
       <PageShell
         title="Collection not found"
         description="This collection does not exist in the catalog."
+        noIndex
       >
         <EmptyState
           title="No such collection"

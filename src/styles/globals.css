@@ -77,12 +77,18 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.625 0.235 25.3);
+  /* brand-600, not brand-500: white text on brand-500 measures 3.84:1, which
+     fails WCAG AA for the 14px labels used on primary buttons. brand-600
+     reaches 4.88:1 and keeps the same red on the brand ramp. */
+  --primary: oklch(0.567 0.231 26.9);
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.205 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.967 0 0);
-  --muted-foreground: oklch(0.556 0 0);
+  /* Darkened from ink-500 (0.556): that measured 4.31:1 on the #f4f4f4 muted
+     surfaces this UI uses, below the 4.5:1 minimum. 0.52 reaches 4.99:1 there
+     and 5.49:1 on white. */
+  --muted-foreground: oklch(0.52 0 0);
   --accent: oklch(0.967 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.3);

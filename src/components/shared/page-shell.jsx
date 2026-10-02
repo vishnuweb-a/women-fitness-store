@@ -1,3 +1,4 @@
+import { PageMeta } from '@/components/shared/page-meta'
 import { cn } from '@/lib/utils'
 
 /**
@@ -6,9 +7,18 @@ import { cn } from '@/lib/utils'
  * Every route renders exactly one `h1` through this component, which keeps the
  * heading order predictable for screen readers.
  */
-export function PageShell({ title, description, children, className }) {
+export function PageShell({
+  title,
+  description,
+  children,
+  className,
+  metaTitle = title,
+  metaDescription = description,
+  noIndex = false,
+}) {
   return (
     <div className={cn('container-site py-section', className)}>
+      <PageMeta title={metaTitle} description={metaDescription} noIndex={noIndex} />
       <header className="max-w-prose">
         <h1 className="font-display text-display-sm font-extrabold tracking-tight">
           {title}

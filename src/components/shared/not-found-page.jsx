@@ -8,6 +8,7 @@ export function NotFoundPage() {
     <PageShell
       title="Page not found"
       description="The page you were looking for does not exist or has moved."
+      noIndex
     >
       <Button asChild>
         <Link to="/">Back to home</Link>

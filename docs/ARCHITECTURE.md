@@ -108,6 +108,68 @@ are consistent.
 `errorElement` renders `RouteError`, which distinguishes a 404 from a thrown
 error.
 
+### Per-route document metadata
+
+Every route renders `PageMeta` (`components/shared/page-meta.jsx`), which
+supplies the document title, the description, Open Graph and Twitter tags, and
+— where appropriate — `noindex, nofollow`.
+
+It relies on **React 19 native metadata hoisting**: a `<title>` or `<meta>`
+rendered anywhere in the tree is lifted into `<head>`. No helper library, and
+no effect that could race a route transition.
+
+Most routes get it through a shared layout that already receives a title and a
+description — `PageShell`, `SupportLayout`, `CustomerLayout`, and
+`CheckoutLayout`. Routes that use none of those render it directly. A route
+that returns a guard branch *before* reaching its layout, such as the checkout
+empty-bag guard, must render its own.
+
+Two things to know before changing this:
+
+- **React appends hoisted metadata; it does not replace what the document
+  already has.** A static `<title>` or `<meta name="description">` left in
+  `index.html` therefore produces two of each on every page. That is why
+  `index.html` declares neither. The cost — an untitled tab until the bundle
+  executes, and no title at all for a client that runs no JavaScript — is a
+  prerendering problem, not a frontend one.
+- **Render exactly one `PageMeta` per route.** A page that embeds another
+  component which renders its own (the `/collections` index embeds
+  `CollectionListing`) must not render a second.
+
+Title composition lives in `src/lib/page-title.js`, separate from the
+component: a module that exports both a component and a plain function breaks
+Fast Refresh and trips `react-refresh/only-export-components`.
+
+`noindex, nofollow` is applied to the cart, the demo checkout and its
+confirmation, every `/account/*` preview, and the not-found states — pages that
+are either per-visitor or fabricated demo state. Catalog and support pages stay
+indexable. There is deliberately **no canonical URL, `og:url`, or `og:image`**:
+this build has no production domain and no social-preview asset.
+
+### Hero preloading
+
+`index.html` carries a small inline script that appends a
+`<link rel="preload" as="image">` for the above-the-fold banner of the route
+being entered — the home hero, or the matching category banner.
+
+Each of those images is its page's Largest Contentful Paint element, and none
+is discoverable from the HTML, because React renders them. Measured on a
+throttled 1.6 Mbps / 150 ms profile, median of five runs: home LCP 5292 ms to
+2132 ms, collection 3816 ms to 2404 ms.
+
+Two alternatives were measured and rejected, so do not reintroduce them:
+
+- **An unconditional `<link rel="preload">` in `index.html`** preloads the home
+  hero on every route. On a collection page that image is fetched and never
+  used, and its 111 kB competed with the banner that page actually paints —
+  costing 512 ms of that page's own LCP.
+- **A `<link>` rendered by the `HeroBanner` component.** React hoists it, but
+  by the time React executes, the parser-blocking work the preload is meant to
+  pre-empt has already finished. Home LCP stayed at 5252 ms — no improvement.
+
+The trade is recorded: home FCP moves 1624 ms to 2116 ms, because the hero now
+shares bandwidth with the stylesheet rather than queueing behind it.
+
 ### Code splitting
 
 The homepage is imported eagerly — it is the most common entry point, and

@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { ArrowLeft, Info } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
+import { PageMeta } from '@/components/shared/page-meta'
 import { CheckoutStepIndicator } from '@/features/checkout/checkout-steps'
 import { cn } from '@/lib/utils'
 
@@ -49,6 +50,9 @@ export function CheckoutLayout({ step, title, description, children, summary }) 
 
   return (
     <div className="container-site py-6 sm:py-8">
+      {/* Demonstration checkout — kept out of search results. */}
+      <PageMeta title={title} description={description} noIndex />
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Link
           to="/cart"

@@ -106,7 +106,7 @@ function CountBadge({ count }) {
   return (
     <span
       aria-hidden="true"
-      className="absolute -right-0.5 -top-0.5 grid min-w-5 place-items-center rounded-full bg-brand-500 px-1 text-[0.625rem] font-bold leading-5 text-white tabular-nums"
+      className="absolute -right-0.5 -top-0.5 grid min-w-5 place-items-center rounded-full bg-brand-600 px-1 text-[0.625rem] font-bold leading-5 text-white tabular-nums"
     >
       {count > 99 ? '99+' : count}
     </span>

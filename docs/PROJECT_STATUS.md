@@ -1,10 +1,15 @@
 # Project Status
 
 **Last updated:** 2026-10-02
-**Current phase:** Phase 4 — customer pages, wishlist polish, and support
-pages (complete)
-**Next phase:** Phase 5 — final frontend polish and end-to-end QA. See "Next
-phase" at the end of this file
+**Current phase:** Phase 5 — final frontend polish, accessibility,
+performance, and end-to-end QA (complete)
+**Next phase:** Backend. The frontend demonstration is finished; what remains
+is Supabase schema, authentication, real variant availability, and order
+creation. See "Next phase" at the end of this file.
+
+The full Phase 5 record — route coverage, execution conditions, bugs fixed,
+before/after measurements, and what was *not* verified — is in
+[`docs/FRONTEND_FINAL_QA.md`](./FRONTEND_FINAL_QA.md).
 
 Keep this file current. It is the first thing an agent reads to learn what
 actually exists.
@@ -521,38 +526,127 @@ say. Each is enforced in code and covered by a test.
   confirmation shows no paid status, invoice, tracking, or delivery promise —
   because none of those exist. There is no "Buy now" action.
 
-## Next phase — Phase 5: final frontend polish and end-to-end QA
+## Phase 5 — complete
 
-The named next phase is final frontend polish and end-to-end QA. The rest of
-this list is what still blocks a real checkout, ordered by what unblocks the
-most downstream work.
+Final frontend polish, accessibility, performance, and end-to-end QA. One
+sweep across every route rather than one feature. Full record:
+[`docs/FRONTEND_FINAL_QA.md`](./FRONTEND_FINAL_QA.md).
 
-1. **Final polish and end-to-end QA (the named next phase).** Sweep the whole
-   storefront rather than one feature: a single pass over typography, spacing,
-   and empty/loading/error states across every route; a full keyboard and
-   screen-reader pass; the remaining `default`-size controls reviewed for
-   touch-target fitness in context; metadata (`og:image`, richer `head`); and
-   one end-to-end QA run covering catalog, cart, demo checkout, customer
-   pages, wishlist, and support together. The clean text-free banner artwork
-   noted in Phase 2 is still outstanding and is a design-asset task.
-2. **Supabase schema and RLS.** Still the prerequisite for everything
+### Verified
+
+Everything below was run against the **production build** served by
+`npm run preview`, in Chromium via Playwright, with axe-core for the
+automated accessibility audit. Playwright and axe were installed outside the
+repository; no test-only dependency was added to `package.json`.
+
+| Check | Result |
+|---|---|
+| `npm run lint` | Clean — 0 errors, 0 warnings |
+| `npm test` | **234 passed** (229 baseline + 5 added) |
+| `npm run build` | Succeeds |
+| Route audit, 24 cases x 4 viewports (360/390/768/1440) | 96 combinations; **0 horizontal overflow, 0 console errors, 0 page errors**, one `h1` and one `main` per route, every `img` with `alt` |
+| axe-core (wcag2a/2aa/21a/21aa), 48 runs | **0 violations** |
+| End-to-end journey | 18/18 — home, search, collection, product, options, bag, cart, demo checkout, review, confirmation, demo orders |
+| Keyboard, focus, 200% zoom, reduced motion | 14/14 |
+| Gallery, variants, wishlist | 9/9 |
+| Link integrity | 53 internal links, **0 broken**, 0 without an accessible name |
+| Privacy | **No PII** in localStorage, sessionStorage, cookies, request URLs, or request bodies |
+| Credentials in `dist/` | **None** — no service-role key, no API secret; only the browser-safe publishable key |
+
+### Fixed
+
+- **118 colour-contrast failures (serious).** `--primary` moved from
+  `brand-500` to `brand-600` (white text 3.84:1 to **4.88:1**) and
+  `--muted-foreground` darkened to `oklch(0.52 0 0)` (4.31:1 to **4.99:1** on
+  the `#f4f4f4` surfaces). Three `bg-brand-500` badges moved to `brand-600` to
+  match. Ratios were measured, not estimated. **118 to 0.**
+- **Every route served an identical `<title>` and description.** All 20 routes
+  shipped the same tab title, so history, bookmarks, and screen-reader page
+  announcements were indistinguishable. Added
+  `src/components/shared/page-meta.jsx` using React 19 native metadata
+  hoisting, with composition in `src/lib/page-title.js`. **All 24 route cases
+  now have a distinct title.** Three follow-on bugs fixed while verifying:
+  duplicate tags (React appends rather than replaces, so the static tags in
+  `index.html` doubled every page), three titles on `/collections`, and no
+  metadata on the checkout empty-bag guard. (With an empty bag `/checkout` and
+  `/checkout/payment` share the guard's title by design; with items in the bag
+  they differ, which was verified separately.)
+- **Home LCP 5292 ms to 2132 ms (-60%)** on a throttled 1.6 Mbps / 150 ms
+  profile, median of five runs; collection **3816 ms to 2404 ms (-37%)**. The
+  banner is each page's LCP element and React renders it, so the browser could
+  not discover it until the CSS and entry chunk had parsed. Fixed with a
+  route-aware preload. Two earlier attempts were measured and rejected: an
+  unconditional `<link>` in `index.html` cost the collection pages 512 ms by
+  preloading an image they never use, and a React-rendered `<link>` runs too
+  late to help at all.
+- **Baked-in banner text legible beside the HTML heading** on the equipment
+  category header. Scrim stops retuned so the baked words become an unreadable
+  smudge; a stronger scrim was rejected for swallowing the photograph.
+
+### Known trade-offs and limits
+
+- Home **FCP regressed 1624 ms to 2116 ms** as the direct cost of the LCP fix:
+  the hero now shares bandwidth with the stylesheet instead of queueing behind
+  it. Accepted deliberately — the hero *is* the first large thing worth seeing.
+- Initial transfer grew **+313 B gzip (+0.13%)**, the cost of per-route
+  metadata and the preload script.
+- `index.html` no longer carries a static `<title>`, so a client that runs no
+  JavaScript gets none. That client gets no content either; prerendering or SSR
+  is the fix and is a hosting change.
+- **No real screen reader, no Firefox or WebKit, no real device, no Lighthouse
+  or field data.** An automated axe pass does not prove accessibility. The full
+  list of unverified checks is section 10 of
+  [`docs/FRONTEND_FINAL_QA.md`](./FRONTEND_FINAL_QA.md).
+
+### Deployment readiness
+
+Per-route titles, descriptions, and Open Graph / Twitter tags ship. A favicon
+ships. `noindex, nofollow` covers the cart, the demo checkout, the
+confirmation, all `/account/*` previews, and the not-found states.
+
+**No canonical URL, `og:url`, or `og:image`** — this build has no production
+domain and no social-preview asset, and inventing either would put a wrong URL
+into every share card.
+
+**SPA deep links require a hosting rewrite** (serve `/index.html` with a 200
+for any non-file path). Per-host configuration and the indexing changes needed
+before a real launch are in section 8 of
+[`docs/FRONTEND_FINAL_QA.md`](./FRONTEND_FINAL_QA.md).
+
+Nothing was deployed, committed, or pushed.
+
+## Next phase — backend
+
+The frontend demonstration is complete. Everything that remains before this is
+a real store is server-side work, ordered by what unblocks the most downstream.
+
+1. **Supabase schema and RLS.** Still the prerequisite for everything
    server-side. Model products, categories, variants, inventory, addresses, and
    orders; enable RLS before the frontend reads anything. Read
    `.agents/skills/supabase-postgres-best-practices/SKILL.md` first.
-3. **Authentication.** Needed before the Phase 4 customer pages can be more
+2. **Authentication.** Needed before the Phase 4 customer pages can be more
    than previews, and before a cart, wishlist, or address can follow someone
    between devices. The seams are tabulated in
    [`docs/CUSTOMER_PAGES.md`](./CUSTOMER_PAGES.md); access must be enforced
    server-side, with any client-side guard a convenience on top.
-4. **Real variant availability.** Once a variant table carries stock, the
+3. **Real variant availability.** Once a variant table carries stock, the
    product page can drop the "combinations not confirmed" caveat and checkout
    can verify inventory rather than stating that it cannot.
-5. **Move the catalog behind a query.** With a server-side catalog the 392 kB
+4. **Move the catalog behind a query.** With a server-side catalog the 392 kB
    chunk leaves the bundle and TanStack Query takes over caching. The header
    cart badge needs a loading state as part of this.
-6. **Make checkout real — only after 2, 3, and 4.** The integration points are
+5. **Make checkout real — only after 1, 2, and 3.** The integration points are
    tabulated at the end of the Phase 3 section above. A payment provider is the
-   last step, not the first: no payment UI should appear before one exists.
-7. **Smaller follow-ups:** a dark-mode toggle (tokens already exist), an
-   `og:image` and richer metadata, a `prefers-reduced-data` path for imagery,
-   and clean text-free banner artwork (see the Phase 2 cosmetic note).
+   last step, not the first: no payment UI should appear before one exists, and
+   no payment credential should ever be collected in this bundle.
+6. **Commercial and legal policy.** Shipping, returns, privacy, and terms are
+   marked drafts or explicitly unset because the merchant has set none. They
+   need real decisions, not placeholder text.
+7. **Prerendering or SSR**, so a crawler that does not execute JavaScript sees
+   a title and content.
+8. **Smaller follow-ups:** clean text-free banner artwork (still outstanding,
+   a design-asset task — the current banners carry baked-in promotional text
+   that the scrim only mitigates), responsive/optimised banner images (they are
+   ~2.5x oversized today), an `og:image`, a dark-mode toggle (tokens already
+   exist, and the `.dark` block has never been contrast-checked), and a
+   `prefers-reduced-data` path for imagery.

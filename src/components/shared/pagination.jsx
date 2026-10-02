@@ -73,7 +73,7 @@ export function Pagination({ page, pageCount, onPageChange, className }) {
                 className={cn(
                   'inline-flex size-11 items-center justify-center rounded-control border text-sm tabular-nums transition-colors',
                   item === page
-                    ? 'border-brand-500 bg-brand-500 font-semibold text-white'
+                    ? 'border-brand-600 bg-brand-600 font-semibold text-white'
                     : 'border-border text-ink-700 hover:bg-muted',
                 )}
               >

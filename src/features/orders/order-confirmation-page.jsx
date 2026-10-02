@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { motion, useReducedMotion } from 'motion/react'
 import { CheckCircle2, Info, SearchX } from 'lucide-react'
 
+import { PageMeta } from '@/components/shared/page-meta'
 import { ProductImage } from '@/components/shared/product-image'
 import { Button } from '@/components/ui/button'
 import { AddressSummary } from '@/features/checkout/address-summary'
@@ -50,6 +51,11 @@ export function OrderConfirmationPage() {
   if (!snapshot) {
     return (
       <div className="container-site py-10 sm:py-14">
+        <PageMeta
+          title="Demo order not found"
+          description="This demonstration order snapshot is no longer in memory."
+          noIndex
+        />
         <div className="mx-auto max-w-xl">
           <DemoNotice />
           <div className="mt-6 flex flex-col items-center gap-3 rounded-card border border-dashed border-border px-6 py-12 text-center">
@@ -89,6 +95,11 @@ export function OrderConfirmationPage() {
 
   return (
     <div className="container-site py-6 sm:py-8">
+      <PageMeta
+        title="Demo checkout complete"
+        description="A demonstration of the completed checkout flow. No order was placed."
+        noIndex
+      />
       <CheckoutStepIndicator current="confirmation" />
 
       <div className="mx-auto mt-8 max-w-3xl">

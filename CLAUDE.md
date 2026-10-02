@@ -30,6 +30,7 @@ what Claude in particular tends to get wrong here.
 | 4 | [docs/DESIGN_SYSTEM.md](./docs/DESIGN_SYSTEM.md) | Tokens and visual direction (for UI work) |
 | 4a | [docs/CHECKOUT.md](./docs/CHECKOUT.md) | Before touching checkout, billing, or the confirmation |
 | 4b | [docs/CUSTOMER_PAGES.md](./docs/CUSTOMER_PAGES.md) | Before touching the customer, wishlist, or support pages |
+| 4c | [docs/FRONTEND_FINAL_QA.md](./docs/FRONTEND_FINAL_QA.md) | What Phase 5 verified, what it fixed, and what it did *not* check |
 | 5 | [docs/SKILLS_INDEX.md](./docs/SKILLS_INDEX.md) | Which skills apply, and their caveats |
 | 6 | The relevant `SKILL.md` files themselves | The actual guidance |
 
@@ -65,6 +66,18 @@ than from memory — several directory names differ from what you might guess.
   API key/secret must never appear in frontend code or a `VITE_` variable.
 - **Preserve `banners/` and `pages/`.** Originals and references; do not edit,
   move, or delete them.
+- **One `PageMeta` per route, and none in `index.html`.** React 19 *appends*
+  hoisted metadata instead of replacing it, so a static `<title>` or
+  description in `index.html`, or a second `PageMeta` inside an embedded
+  component, ships duplicates on every page. All three mistakes were made and
+  fixed in Phase 5. See `docs/ARCHITECTURE.md`.
+- **White text needs `brand-600` or darker.** `brand-500` measures 3.84:1
+  behind white body text and fails WCAG AA; that single token caused 118 of
+  the 118 contrast failures found in Phase 5.
+- **Do not reintroduce a static hero preload in `index.html`,** and do not move
+  the preload into a component. Both were measured and both are worse: the
+  first costs collection pages 512 ms, the second does nothing at all. The
+  route-aware inline script is the version that works.
 
 ## Honesty requirements
 
