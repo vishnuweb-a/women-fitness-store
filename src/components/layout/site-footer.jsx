@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { CreditCard, PackageCheck, RotateCcw, ShieldCheck } from 'lucide-react'
+import { CreditCard, LifeBuoy, PackageCheck, RotateCcw } from 'lucide-react'
 
 import { NewsletterForm } from '@/components/shared/newsletter-form'
 import { CATEGORY_NAV } from '@/services/category-meta'
@@ -24,20 +24,52 @@ const FOOTER_SECTIONS = [
     ],
   },
   {
-    heading: 'Your account',
+    heading: 'Customer',
     links: [
-      { label: 'Account', to: '/account' },
+      { label: 'Customer hub', to: '/account' },
+      { label: 'Profile preview', to: '/account/profile' },
+      { label: 'Address preview', to: '/account/addresses' },
+      { label: 'Demo orders', to: '/account/orders' },
       { label: 'Wishlist', to: '/wishlist' },
       { label: 'Shopping bag', to: '/cart' },
     ],
   },
+  {
+    heading: 'Help',
+    links: [
+      { label: 'Help centre', to: '/help' },
+      { label: 'Contact', to: '/contact' },
+      { label: 'Shipping', to: '/shipping' },
+      { label: 'Returns', to: '/returns' },
+      { label: 'Privacy', to: '/privacy' },
+      { label: 'Terms', to: '/terms' },
+    ],
+  },
 ]
 
+/**
+ * The service row.
+ *
+ * It previously advertised "Free delivery on orders over ₹999" and "30-day
+ * returns". No such policy has been set — the shipping and returns pages say
+ * so explicitly — so the footer must not assert them on every page of the
+ * site. Each row now points at the page that states the real status.
+ */
 const TRUST_ITEMS = [
-  { icon: PackageCheck, title: 'Free delivery', note: 'On orders over ₹999' },
-  { icon: RotateCcw, title: '30-day returns', note: 'Hassle free' },
-  { icon: ShieldCheck, title: 'Authentic products', note: 'Quality checked' },
-  { icon: CreditCard, title: 'Secure checkout', note: 'Not yet operational' },
+  {
+    icon: PackageCheck,
+    title: 'Shipping',
+    note: 'Policy not set yet',
+    to: '/shipping',
+  },
+  { icon: RotateCcw, title: 'Returns', note: 'Policy not set yet', to: '/returns' },
+  { icon: LifeBuoy, title: 'Help centre', note: 'What this build does', to: '/help' },
+  {
+    icon: CreditCard,
+    title: 'Demo checkout',
+    note: 'No payment is taken',
+    to: '/help',
+  },
 ]
 
 export function SiteFooter() {
@@ -68,24 +100,29 @@ export function SiteFooter() {
       <section aria-label="Service highlights" className="border-b border-ink-800">
         <ul className="container-site grid grid-cols-2 gap-4 py-6 lg:grid-cols-4">
           {TRUST_ITEMS.map((item) => (
-            <li key={item.title} className="flex items-center gap-3">
-              <item.icon
-                className="size-5 shrink-0 text-brand-500"
-                aria-hidden="true"
-                focusable="false"
-              />
-              <span>
-                <span className="block text-sm font-semibold text-white">
-                  {item.title}
+            <li key={item.title}>
+              <Link
+                to={item.to}
+                className="flex min-h-11 items-center gap-3 rounded-control transition-colors hover:text-white"
+              >
+                <item.icon
+                  className="size-5 shrink-0 text-brand-500"
+                  aria-hidden="true"
+                  focusable="false"
+                />
+                <span>
+                  <span className="block text-sm font-semibold text-white">
+                    {item.title}
+                  </span>
+                  <span className="block text-xs text-ink-400">{item.note}</span>
                 </span>
-                <span className="block text-xs text-ink-400">{item.note}</span>
-              </span>
+              </Link>
             </li>
           ))}
         </ul>
       </section>
 
-      <div className="container-site grid gap-8 py-12 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="container-site grid gap-8 py-12 sm:grid-cols-2 lg:grid-cols-5">
         <div>
           <p className="font-display text-lg font-extrabold tracking-tight text-white">
             FITNE<span className="text-brand-500">X</span> WOMEN
@@ -127,8 +164,8 @@ export function SiteFooter() {
           </h2>
           <p className="mt-3 text-sm text-ink-400 text-pretty">
             FITNEX WOMEN is a demonstration storefront. Product data and imagery
-            come from a public catalog scrape; checkout and payment are not
-            operational.
+            come from a public catalog scrape. Checkout is a frontend
+            demonstration: no payment is taken and no order is placed.
           </p>
         </div>
       </div>

@@ -6,15 +6,21 @@ E-commerce storefront for women's sports and fitness accessories.
 A React single-page application built with Vite, Tailwind CSS v4, and
 shadcn/ui, with Supabase as the intended data layer.
 
-> **Status: Phase 2 complete — collections, product detail, and the cart.**
-> The home page, search, a fully filterable collection listing, product detail
-> with a keyboard-accessible gallery, and a persistent browser-local cart and
-> wishlist all work against a real 44-product catalog with imagery delivered by
-> Cloudinary. Filters, sorting, and pagination live in the URL, so a listing is
-> shareable and back/forward behave. **Checkout and payment are not
-> operational**, stock is unknown for every product, and there is no
-> authentication or database schema. See
-> [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md).
+> **Status: Phase 4 complete — customer pages, wishlist polish, and support
+> pages.** The home page, search, a fully filterable collection listing,
+> product detail with a keyboard-accessible gallery, and a persistent
+> browser-local cart and wishlist all work against a real 44-product catalog
+> with imagery delivered by Cloudinary. Filters, sorting, and pagination live
+> in the URL, so a listing is shareable and back/forward behave. Checkout,
+> billing, payment-method selection, and confirmation are built — but **as a
+> frontend demonstration only: no payment is taken, no order is created, and
+> no payment credential is collected anywhere.** The customer hub, profile and
+> address previews, demo order list, and the help and policy pages are built
+> too — **without authentication**, which does not exist in this build: the
+> previews are held in memory for one session and cleared on reload. Stock is
+> unknown for every product, and there is still no database schema. See
+> [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) and
+> [docs/CUSTOMER_PAGES.md](docs/CUSTOMER_PAGES.md).
 
 ## Quick start
 
@@ -67,16 +73,25 @@ left unchanged; the mapping is documented in
 
 | Path | Page | State |
 |---|---|---|
-| `/` | Home | Hero built; sections pending |
-| `/collections` | Collections index | Placeholder |
-| `/collections/:slug` | Category listing | Placeholder |
-| `/products/:slug` | Product detail | Placeholder |
-| `/cart` | Shopping bag | Empty state |
-| `/checkout` | Delivery information | Placeholder — **not operational** |
-| `/checkout/payment` | Billing and payment | Placeholder — **not operational** |
-| `/orders/:id/confirmation` | Order confirmation | Placeholder |
-| `/account` | Account | Placeholder — no auth |
-| `/wishlist` | Wishlist | Empty state |
+| `/` | Home | Implemented — full landing page |
+| `/collections` | Collections index | Implemented — tiles plus a filterable listing |
+| `/collections/:slug` | Category listing | Implemented — filters, sorting, pagination in the URL |
+| `/products/:slug` | Product detail | Implemented — gallery, options, add to bag |
+| `/cart` | Shopping bag | Implemented — lines, quantities, merchandise subtotal |
+| `/checkout` | Delivery information | **Demonstration** — form works; takes no payment |
+| `/checkout/payment` | Billing, payment method, review | **Demonstration** — no provider, no credential fields |
+| `/orders/:id/confirmation` | Demo completion | **Demonstration** — in-memory snapshot; no order exists |
+| `/account` | Customer hub | Implemented — no auth exists, so no identity or membership is shown |
+| `/account/profile` | Profile preview | Implemented — session only, cleared on reload |
+| `/account/addresses` | Address preview | Implemented — session only, exactly one default |
+| `/account/orders` | Demo orders | Implemented — reads the in-memory demo checkout snapshots |
+| `/wishlist` | Wishlist | Implemented — browser-local saved products |
+| `/help` | Help centre | Implemented — describes implemented behaviour only |
+| `/contact` | Contact | Implemented — no endpoint; the form cannot send and says so |
+| `/shipping` | Shipping | Implemented — states that no policy has been set |
+| `/returns` | Returns | Implemented — states that no policy has been set |
+| `/privacy` | Privacy | Implemented — a marked draft of observed behaviour |
+| `/terms` | Terms | Implemented — a marked draft |
 | anything else | Not found | Working |
 
 ## Integration status
@@ -154,6 +169,11 @@ dishonest.
 
 ## What comes next
 
-**Phase 3: a Supabase schema with RLS, real variant availability, and moving
-the catalog behind a query** — the prerequisites for an honest checkout.
-Details in [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md).
+**Phase 5: final frontend polish and end-to-end QA** — one sweep across every
+route rather than one feature, then a full keyboard, screen-reader, and
+end-to-end run.
+
+After that, the backend work that still blocks an honest checkout: **a
+Supabase schema with RLS, authentication, real variant availability, and
+moving the catalog behind a query.** Details in
+[docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md).

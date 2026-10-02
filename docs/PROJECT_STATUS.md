@@ -1,9 +1,10 @@
 # Project Status
 
 **Last updated:** 2026-10-02
-**Current phase:** Phase 2 — complete collection pages, product-detail pages,
-cart UI, and route-level performance work (complete)
-**Next phase:** Phase 3 — see "Next phase" at the end of this file
+**Current phase:** Phase 4 — customer pages, wishlist polish, and support
+pages (complete)
+**Next phase:** Phase 5 — final frontend polish and end-to-end QA. See "Next
+phase" at the end of this file
 
 Keep this file current. It is the first thing an agent reads to learn what
 actually exists.
@@ -207,14 +208,265 @@ originals in `banners/` were not modified.
 
 Screenshots are in [`docs/screenshots/`](./screenshots/), prefixed `phase2-`.
 
+
+## Phase 3 — complete
+
+**Scope: a frontend demonstration of the checkout screens.** No payment
+provider was integrated, no order is created, no authentication was added, and
+nothing in Supabase was touched. The flow says so on every screen.
+
+### Delivered
+
+| Area | State |
+|---|---|
+| Checkout schemas (`features/checkout/checkout-schema.js`) | Zod v4 schemas for delivery and billing, Indian state/UT list, tolerant `+91` phone normalisation, six-digit PIN rule, `resolveBillingAddress` |
+| Checkout state (`features/checkout/checkout-state.js`) | Pure reducer, step guards, `cartSignature`, deep-frozen snapshot builder, `DEMO-`-prefixed reference generator |
+| Checkout provider | `CheckoutProvider` / `CheckoutContext` / `useCheckout` + `useCheckoutSession` — the same three-way split as the cart, so Fast Refresh keeps working |
+| Shared layout (`checkout-layout.jsx`) | Brand row, back-to-bag, step indicator, persistent demo notice, form + sticky summary on desktop, form-then-summary on mobile |
+| Step indicator (`checkout-steps.jsx`) | `nav` + `ol`, `aria-current="step"`, completed steps are real links, per-step status in visually-hidden text |
+| Order summary (`checkout-summary.jsx`) | Derived from the live catalog-backed cart on every render; merchandise subtotal only |
+| Delivery step (`/checkout`) | React Hook Form + Zod, labelled fields with autocomplete and mobile keyboards, accessible errors, focus to the first invalid field |
+| Billing and payment (`/checkout/payment`) | Delivery summary with Edit, "same as delivery" checkbox (on by default), alternate billing form, demo method selection, then the review |
+| Payment methods (`payment-method-group.jsx`) | UPI / card / net banking as native radios in a labelled `radiogroup`, styled as cards. **No credential field of any kind** |
+| Review (`checkout-review.jsx`) | Items, option labels, quantities, line subtotals, merchandise subtotal, contact, both addresses, method, Edit links |
+| Confirmation (`/orders/:id/confirmation`) | Reads the frozen snapshot; demo reference, items, subtotal, method; demo-session-unavailable state for an unknown id or a reload |
+| Cart entry | The checkout button is enabled and reads "Continue to demo checkout"; it stays closed while an unavailable line cannot be priced |
+| Guards | Empty cart, unavailable lines, and direct entry without a draft each get an explanation and a route onward — never a silent redirect |
+| Tests | 148 tests across 5 files (was 83). 65 new, covering validation, billing derivation, guards, signatures, snapshots, and references |
+
+### Verified by running
+
+| Check | Command / method | Result |
+|---|---|---|
+| Lint | `npm run lint` | **Clean — 0 errors, 0 warnings** |
+| Tests | `npm test` | **148 passed / 148** (83 existing + 65 new) |
+| Production build | `npm run build` | **Succeeded** — 2620 modules |
+| Checkout flow suite | Headless Chrome against `vite preview` | **75 / 75 checks passed, 0 console errors** |
+| Responsive / a11y suite | Headless Chrome, 1440 / 768 / 390 | **33 / 33 checks passed, 0 console errors** |
+| Empty-cart checkout | `/checkout` and `/checkout/payment` with an empty bag | Explained, with a link back to the bag. No redirect |
+| Invalid delivery fields | Bad email, 5-digit phone, 2-digit PIN, empty names | All four reported; focus moved to the email field; `aria-invalid`, `aria-describedby`, and `role="alert"` all wired |
+| Valid delivery | Complete form | Advanced to `/checkout/payment`; phone normalised to `+91 98765 43210` |
+| Back navigation | Payment to Edit to delivery | Every field retained, including the state `select` |
+| Full reload | Reload of `/checkout` | Draft dropped, delivery step shown empty — the intended privacy behaviour |
+| Alternate billing | Unchecked "same as delivery", submitted empty | Blocked with per-field errors; focus moved to the first invalid billing field |
+| Hidden billing form | Re-checked "same as delivery" with the alternate form half-filled | Did **not** block progression |
+| Billing derivation | Edited delivery city to Pune after choosing "same as delivery" | Billing followed to Pune / 411001; no stale Bengaluru copy |
+| Payment method required | Review without a selection | Blocked: "Select a payment method to continue." |
+| Radio group | Keyboard | Labelled `radiogroup`, 3 native radios sharing a name; ArrowDown moves; Space selects |
+| Review contents | Completed review | 3 items, option labels, contact, address, method, subtotal INR 3,897 |
+| Review focus | Review appearing | Focus moved to the review heading |
+| Cart change mid-checkout | Raised a quantity in the bag, returned in-app | Summary refreshed; the review was withdrawn until the new items were confirmed |
+| Completion | "Complete demo checkout" | Navigated to `/orders/DEMO-.../confirmation`; reference in the URL matched the one shown |
+| Confirmation honesty | Scan for affirmative claims and actions | No "order confirmed", paid status, order number, estimated delivery, or track/invoice/download action |
+| Cart after completion | `localStorage` and `/cart` | **2 lines intact.** The bag was not emptied |
+| Confirmation reload | Reloaded the confirmation URL | Demo-session-unavailable state, explained |
+| Unknown id | `/orders/NOT-A-REAL-ID/confirmation` | Same state; the id was **not** echoed and no order was fabricated |
+| Direct entry | `/checkout/payment` with no draft | "Delivery details needed", with a route to the delivery step |
+| **Personal-data leakage** | Dumped `localStorage`, `sessionStorage`, cookies, and the URL after a completed demo checkout | **0 leaks.** Only `fitnex:cart:v2` and `fitnex:wishlist:v1` present; no cookies. Email, name, phone, and both addresses absent everywhere |
+| Horizontal overflow | Delivery, payment, alternate billing, review, confirmation at 1440 / 768 / 390 | **None** |
+| Touch targets | Checkout controls at all three widths | All at least 44px |
+| Keyboard | Tab through the payment step | 44 stops, every one rendered and non-zero; 2px solid focus ring |
+| Heading structure | Every checkout surface | Exactly one `h1`, exactly one `main`, no skipped levels |
+| Reduced motion | `prefers-reduced-motion: reduce` | Delivery form, review, and confirmation all fully visible, `transform: none`. Nothing hidden by animation |
+| Console errors | Every checkout route and viewport | **None** |
+
+Screenshots are in [`docs/screenshots/`](./screenshots/), prefixed `phase3-`.
+
+### Bugs found and fixed during Phase 3
+
+Each was found by running the thing, not by reading it.
+
+- **The sticky header covered the top of each new step.** Submitting the
+  delivery form left the page at y=92 while the header's lower edge sat at
+  146, so the new step's heading and its "Back to bag" link were both behind
+  the header — and the link was not clickable, because the header was over it.
+  Caught when a scripted click on "Back to bag" landed on the header's "Shop
+  All" instead. Each step now scrolls to the top on entry.
+- **Two `main` landmarks.** `CheckoutLayout` rendered its own `main` inside the
+  one `RootLayout` already provides. Now a `div`.
+- **Focus never reached the review heading.** `AnimatePresence mode="wait"`
+  unmounts the form before mounting the review, so the parent's focus effect
+  ran while the heading did not yet exist and focus silently stayed on `body`.
+  Focus now happens in the review's own mount effect.
+- **`h1` followed by `h3` on the payment step.** `AddressSummary` hardcoded
+  `h3`, and a `legend` is not a heading, so there was no `h2` to nest under.
+  The heading level is now a prop set per call site.
+- **The hidden billing form blocked progression.** `addressSchema.partial()`
+  still ran its own field rules, so a half-filled alternate form failed
+  validation while invisible — attaching errors to inputs that were not on
+  screen to fix. Caught by a test written before the browser pass. The field is
+  now unvalidated at the schema level and gated solely by `superRefine`.
+- **The alternate billing address was not trimmed.** `z.unknown()` passes its
+  input through, so billing kept whatever whitespace was typed while delivery
+  was trimmed — the same address would have rendered differently on the review.
+  Fixed with a `transform`.
+- **A stale review was clickable for one frame.** Resetting the review mode
+  from an effect rendered it once before retracting it. It is now derived at
+  render from the request and the cart signature together.
+- **Checkout actions were 40px tall.** The shadcn `lg` size is `h-10`. Raised
+  locally to 44px rather than changing the shared primitive for every route.
+
+### Demo limitations and backend integration points
+
+These are the seams a real checkout would be built on. Each is a deliberate
+absence, not an oversight.
+
+| Area | Current behaviour | What connecting a backend would supply |
+|---|---|---|
+| Orders | A frontend-only `DEMO-...` reference and an in-memory snapshot | An orders table, a real order number, and server-side persistence |
+| Payment | A recorded method *preference*; no provider contacted | A payment provider, a PCI boundary, and an authorisation result |
+| Pricing | Merchandise subtotal only, in integer paise from the catalog | Server-side pricing, promotions, and a payable total |
+| Shipping | "Not calculated"; no rates, carriers, dates, or method choice | Rate quotes, serviceability by PIN code, and lead times |
+| Tax | "Not calculated" | GST rules by place of supply |
+| Inventory | Nothing is reserved; stock is unknown for every product | Stock checks and reservation at checkout |
+| Address | Format validation only | Address verification and delivery-coverage lookup |
+| Identity | No authentication; the draft is per-tab and in memory | Accounts, saved addresses, and order history |
+| Confirmation | Lost on reload, by design | A persisted order the confirmation can look up |
+
+## Phase 4 — complete
+
+**Scope: the customer, wishlist, and support frontend, without
+authentication.** No sign-in, registration, password reset, route protection,
+or Supabase Auth was built; none was in scope. Nothing was changed in
+Supabase, no asset was uploaded, and nothing was committed or pushed.
+
+Full detail: [`docs/CUSTOMER_PAGES.md`](./CUSTOMER_PAGES.md).
+
+### Delivered
+
+| Area | State |
+|---|---|
+| Customer state (`features/customer/customer-state.js`) | Pure reducer for the profile and address previews, plus `ensureOneDefault`, `getDefaultAddress`, `profileDisplayName` |
+| Customer provider | `CustomerProvider` / `CustomerContext` / `useCustomer` — the same three-way split as the cart and checkout. In memory only |
+| Customer schemas (`customer-schema.js`) | Profile rules; address preview **reusing** the checkout `addressSchema`, state list, and phone normalisation |
+| Customer layout | One `nav`: sticky sidebar from `lg:` up, horizontal scroller below. One `aria-current="page"` |
+| Customer hub (`/account`) | Replaces the Phase 0 placeholder. A card per section with an honest status line. No identity, membership, points, or order count |
+| Profile preview (`/account/profile`) | Name, email, phone. "Apply to preview", cancel, clear. Accessible errors, focus to the first invalid field, focus restored to the trigger |
+| Address preview (`/account/addresses`) | Empty state, add/edit form, cards, delete confirmation dialog, default selection, labels (Home / Work / custom) |
+| Demo orders (`/account/orders`) | Reads the checkout provider's frozen snapshots — no second order store. Labelled "Demo checkout"; links to the existing confirmation route |
+| Wishlist (`/wishlist`) | Responsive cards, count, remove, product links, empty state, unavailable-product section, live-region feedback, option-choice routing |
+| Wishlist store additions | `removeFromWishlist`, `unavailableWishlistIds`. Storage key and format unchanged |
+| Support pages | `/help`, `/contact`, `/shipping`, `/returns`, `/privacy`, `/terms` on a shared layout with a visible policy-status banner |
+| Storefront chrome | Announcement bar and footer no longer assert free shipping or 30-day returns; footer gained Customer and Help columns |
+| Button `lg` size | Raised from `h-10` (40px) to `h-11` (44px) at the primitive |
+| Tests | 229 tests across 9 files (was 148). 81 new |
+
+### Verified by running
+
+| Check | Command / method | Result |
+|---|---|---|
+| Lint | `npm run lint` | **Clean — 0 errors, 0 warnings** |
+| Tests | `npm test` | **229 passed / 229** (148 existing + 81 new) |
+| Production build | `npm run build` | **Succeeded** |
+| Browser suite | Headless Chrome against `vite preview`, 1440 / 768 / 390 | **216 / 216 checks passed, 0 console errors** |
+| Heading structure | Every customer and support route | Exactly one `h1`, exactly one `main`, no skipped levels |
+| Current-page nav | `/account/profile` | Exactly one `aria-current="page"`, on the right entry |
+| Profile validation | Empty submit | 4 errors; focus moved to the first invalid field; `aria-invalid` and `aria-describedby` wired |
+| Profile validation | Bad email, 5-digit phone | Both reported, nothing else |
+| Profile apply | Valid submit | Values shown, phone normalised to `+91 98765 43210`, announced in a live region, focus restored to Edit |
+| Address default | First address added | Became the default automatically |
+| Address default | Second added, then switched | Exactly one default throughout |
+| Address deletion | Deleted the default | Another address promoted; exactly one default remained |
+| Delete dialog | Opened, Escape | Focus moved inside; Escape closed it; focus restored to the Delete trigger |
+| Reload | `/account/addresses`, `/account/profile` | Previews cleared, empty states shown |
+| Demo orders empty | No completed checkout | "No real orders yet. Checkout currently runs in demo mode." |
+| Demo orders filled | Completed a demo checkout, navigated in-app | Entry appeared, labelled "Demo checkout", with reference, items, subtotal, method |
+| Demo order detail | "View details" | Opened `/orders/DEMO-.../confirmation` — the existing route |
+| Demo orders reload | Reloaded the list | Empty again, as designed |
+| Unknown reference | `/orders/NOT-A-REAL-ID/confirmation` | Demo-session-unavailable state; id not echoed |
+| Wishlist | Saved 3, removed 1, reloaded | Count correct, removal announced, survived the reload |
+| Wishlist unavailable | Injected an unknown id into storage | Explained in its own section and removable |
+| Wishlist options | Multi-option products | "Choose options" routed to the product page; no variant invented |
+| Contact form | Submitted a complete message | Never claimed success; stated it was not sent; **0 network requests** |
+| Policy status | All four policy pages | Status banner present on the page |
+| Policy honesty | Shipping / returns | No timeframe, fee, coverage, or return window stated |
+| Privacy honesty | Privacy page | Does not claim no data leaves the browser; names Cloudinary, Google Fonts, and the host; names the two real storage keys |
+| **Personal-data leakage** | Dumped `localStorage`, `sessionStorage`, cookies, and the URL after profile, address, contact, and a demo checkout | **0 leaks.** Only `fitnex:cart:v2` and `fitnex:wishlist:v1`; no cookies. Name, email, phone, and address absent everywhere |
+| Touch targets | All 11 routes at 1440 / 768 / 390 | All at least 44px (18 real 36px violations found and fixed) |
+| 40px button issue | Product add-to-bag row | Now 44px |
+| Primary shopping controls | `/`, `/collections`, `/cart` at 390 | All at least 44px |
+| Horizontal overflow | All 11 routes at 1440 / 768 / 390 | **None** |
+| Focus visibility | Tab on `/account` | 2px solid focus ring |
+| Reduced motion | `/account`, `/account/profile`, `/wishlist`, `/help` | Fully visible, nothing hidden by animation |
+| Direct entry | All 11 routes in a fresh tab | Rendered, no page errors |
+| Dead controls | All 11 routes | No link with a missing or `#` href |
+| Regression | `/`, `/collections`, `/cart`, `/checkout` | All still render |
+| Console errors | Every route and viewport | **None** |
+
+Screenshots are in [`docs/screenshots/`](./screenshots/), prefixed `phase4-`.
+
+### Bugs found and fixed during Phase 4
+
+Each was found by running the thing.
+
+- **Eighteen controls were 36px tall.** The shadcn `default` button size is
+  `h-9`, and the new customer, wishlist, and contact actions used it — below
+  the 44px minimum at every viewport. Caught by measuring every control on
+  every route rather than by inspection. The page actions now use `lg`.
+- **The reported 40px issue was in the `lg` size itself.** `lg` was `h-10`,
+  and every existing call site was already patching it back to 44px with a
+  local `min-h-11` — except the product page's **Add to bag** and **Save**,
+  which were therefore 40px. Fixed at the primitive rather than at each call
+  site. `default` and `sm` were left alone deliberately: inflating them would
+  wreck the density of the filter rail and the listing toolbar.
+- **The announcement bar and footer asserted policies the policy pages deny.**
+  "Free shipping on orders over ₹999" and "30-day easy returns" appeared on
+  every page of the site while `/shipping` and `/returns` state that no policy
+  has been set. Both replaced with supportable statements that link to the
+  real status.
+- **The contact page overclaimed.** It said "Nothing leaves your browser",
+  which is false for a page served over the network with third-party fonts and
+  images. It now states precisely what the button does not send, and points at
+  the privacy page for what the page itself requests.
+- **A ref was read during render.** `handleSubmit(onSubmit, onInvalid)` is
+  evaluated at render time and `onSubmit` closed over the focus ref, which the
+  React Compiler lint rule rejects. The handler is now wrapped so the call
+  happens on the event.
+- **Focus restoration used a setState-in-effect.** Returning focus to the Edit
+  and Add buttons after closing a form is now done with `flushSync` in the
+  handler, which commits the unmount before the focus call and avoids the
+  cascading render the lint rule flags.
+- **The wishlist silently dropped saved products that left the catalog.** They
+  vanished with no explanation. They are now reported and removable, and
+  `wishlistCount` counts only renderable products so the header badge matches
+  the page.
+
+### Demo limitations and backend integration points
+
+Tabulated in [`docs/CUSTOMER_PAGES.md`](./CUSTOMER_PAGES.md). In short: the
+profile, addresses, and demo orders are session-only previews; the wishlist is
+browser-local; the contact form has no endpoint; and the shipping, returns,
+privacy, and terms pages are explicitly unset or draft, pending merchant and
+legal review.
+
 ## Known limitations
 
-- **Checkout and payment are not operational.** The cart's checkout button is
-  disabled and labelled "Checkout unavailable". No payment provider is
-  integrated and no card data is collected anywhere.
+- **Checkout is a frontend demonstration, not a transaction.** The screens are
+  built and usable, but no payment provider is integrated, no order is created,
+  nothing is persisted server-side, and no card, UPI, or banking credential is
+  collected anywhere. Completing the flow produces a `DEMO-` reference held in
+  memory for one page session. Every screen states this.
+- **The demo checkout keeps personal data in memory only.** Contact and address
+  values are never written to `localStorage`, `sessionStorage`, cookies, the
+  URL, logs, or the cart storage, and are lost on reload by design. Verified by
+  dumping all persistent storage after a completed demo checkout.
 - **Newsletter sign-up has no backend.** Submitting validates the address and
   then states plainly that nothing was saved. It never claims success.
-- **No authentication.** `/account` is still a placeholder.
+- **No authentication.** No sign-in, registration, password reset, route
+  protection, or Supabase Auth exists. `/account` is now a Customer Hub
+  (Phase 4) that previews the customer areas without implying an account.
+- **The customer previews are session-only.** Profile and address values live
+  in memory for one page session and are cleared on reload. They are never
+  written to storage, cookies, the URL, logs, or Supabase, and are never
+  copied into checkout.
+- **Demo order history is session-only.** `/account/orders` reads the
+  checkout provider's in-memory snapshots, so it is empty after a reload.
+- **The contact form cannot send a message.** No submission endpoint is
+  configured, and no contact details are published because none are set. The
+  page states this before anything is typed and never reports success.
+- **Shipping and returns policies are not set**, and the privacy and terms
+  pages are clearly-marked drafts describing observed behaviour, pending
+  merchant and legal review.
 - **No database schema.** No tables, no RLS policies, no seed data. Nothing was
   created in Supabase during this phase.
 - **Cart and wishlist are browser-local.** They persist in `localStorage`, are
@@ -227,8 +479,10 @@ Screenshots are in [`docs/screenshots/`](./screenshots/), prefixed `phase2-`.
   only 21.7 kB gzip / 15.9 kB brotli). This is a measured, deliberate trade —
   see the Phase 2 bundle note above. Moving it behind a fetch would require
   the header cart badge to tolerate a loading state.
-- **`/checkout`, `/checkout/payment`, `/orders/:id/confirmation`** remain
-  Phase 0 placeholders.
+- **`/checkout`, `/checkout/payment`, `/orders/:id/confirmation`** are
+  implemented as a demonstration (Phase 3). They route, validate, and render,
+  but transact nothing. The confirmation cannot survive a reload, because there
+  is no order to look up.
 - **Dark mode** is defined in tokens but still has no UI toggle.
 - **One image file on disk is unreferenced** by any product (406 files, 405
   referenced). It was uploaded with the rest; nothing links to it.
@@ -261,29 +515,44 @@ say. Each is enforced in code and covered by a test.
 - **No measurements, care guidance, warranty, or returns policy** is shown
   beyond the specification fields the source supplies. Missing sections are
   omitted rather than estimated.
-- **Checkout and payment remain non-operational.** The checkout button is
-  disabled and labelled "Checkout unavailable". There is no "Buy now" action.
+- **Checkout demonstrates the screens without transacting.** The cart action
+  reads "Continue to demo checkout". The flow shows no payable grand total, no
+  delivery date, no shipping rate, and no payment-credential field, and the
+  confirmation shows no paid status, invoice, tracking, or delivery promise —
+  because none of those exist. There is no "Buy now" action.
 
-## Next phase — Phase 3 (recommended)
+## Next phase — Phase 5: final frontend polish and end-to-end QA
 
-Ordered by what unblocks the most downstream work.
+The named next phase is final frontend polish and end-to-end QA. The rest of
+this list is what still blocks a real checkout, ordered by what unblocks the
+most downstream work.
 
-1. **Supabase schema and RLS.** The storefront is still entirely client-side
-   over a generated file. Model products, categories, variants, and inventory;
-   enable RLS before the frontend reads anything. This is the prerequisite for
-   almost everything below — read
+1. **Final polish and end-to-end QA (the named next phase).** Sweep the whole
+   storefront rather than one feature: a single pass over typography, spacing,
+   and empty/loading/error states across every route; a full keyboard and
+   screen-reader pass; the remaining `default`-size controls reviewed for
+   touch-target fitness in context; metadata (`og:image`, richer `head`); and
+   one end-to-end QA run covering catalog, cart, demo checkout, customer
+   pages, wishlist, and support together. The clean text-free banner artwork
+   noted in Phase 2 is still outstanding and is a design-asset task.
+2. **Supabase schema and RLS.** Still the prerequisite for everything
+   server-side. Model products, categories, variants, inventory, addresses, and
+   orders; enable RLS before the frontend reads anything. Read
    `.agents/skills/supabase-postgres-best-practices/SKILL.md` first.
-2. **Real variant availability.** Once a variant table exists with stock, the
-   product page can replace the "combinations not confirmed" caveat with actual
-   availability, and option buttons can be disabled where a combination does
-   not exist. Until then the current honesty constraints must stay.
-3. **Move the catalog behind a query.** With a server-side catalog, the 392 kB
-   chunk leaves the bundle entirely and TanStack Query takes over caching. Give
-   the header cart badge a loading state as part of this.
-4. **Authentication and a server-side cart**, so a bag survives a device change
-   rather than living in one browser.
-5. **Checkout** — only after 1, 2, and 4. It must not be built on the current
-   local cart, and no payment UI should appear before a provider is integrated.
-6. **Smaller follow-ups:** a dark-mode toggle (tokens already exist), an
-   `og:image` and richer metadata, and a `prefers-reduced-data` path for
-   imagery.
+3. **Authentication.** Needed before the Phase 4 customer pages can be more
+   than previews, and before a cart, wishlist, or address can follow someone
+   between devices. The seams are tabulated in
+   [`docs/CUSTOMER_PAGES.md`](./CUSTOMER_PAGES.md); access must be enforced
+   server-side, with any client-side guard a convenience on top.
+4. **Real variant availability.** Once a variant table carries stock, the
+   product page can drop the "combinations not confirmed" caveat and checkout
+   can verify inventory rather than stating that it cannot.
+5. **Move the catalog behind a query.** With a server-side catalog the 392 kB
+   chunk leaves the bundle and TanStack Query takes over caching. The header
+   cart badge needs a loading state as part of this.
+6. **Make checkout real — only after 2, 3, and 4.** The integration points are
+   tabulated at the end of the Phase 3 section above. A payment provider is the
+   last step, not the first: no payment UI should appear before one exists.
+7. **Smaller follow-ups:** a dark-mode toggle (tokens already exist), an
+   `og:image` and richer metadata, a `prefers-reduced-data` path for imagery,
+   and clean text-free banner artwork (see the Phase 2 cosmetic note).

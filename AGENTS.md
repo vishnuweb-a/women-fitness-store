@@ -32,8 +32,11 @@ backend here. Supabase is the intended data layer; any server-side logic
 belongs in Supabase Edge Functions, not in this bundle.
 
 Phase 0 delivered a runnable shell with routing, layout, tokens, and
-integration boundaries. **Checkout and payment are not operational** and must
-not be described as such.
+integration boundaries. Phase 3 built the checkout screens, but **as a frontend
+demonstration only**: no payment provider is integrated, no order is created,
+nothing is persisted server-side, and no card, UPI, or banking credential is
+collected anywhere. Describe it as a demonstration, never as operational
+checkout or payment, and never add a payment-credential field to it.
 
 ## Stack and architecture
 
@@ -184,6 +187,8 @@ When behaviour changes, update the affected file in the same change:
 | `docs/DESIGN_SYSTEM.md` | Tokens, assets, visual conventions |
 | `docs/PROJECT_SETUP.md` | Install, environment, integrations |
 | `docs/CATALOG.md` | Product data provenance, price units, Cloudinary upload pipeline |
+| `docs/CHECKOUT.md` | The demo checkout flow: what it does and does not do, and the backend seams |
+| `docs/CUSTOMER_PAGES.md` | Customer pages, session-only previews, wishlist, support and policy status |
 | `docs/SKILLS_INDEX.md` | Installed skills — update if `.agents/skills/` changes |
 | `README.md` | Orientation |
 

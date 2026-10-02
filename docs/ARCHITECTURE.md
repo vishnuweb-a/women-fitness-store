@@ -35,6 +35,8 @@ src/
     shared/       cross-feature pieces: states, error boundary, page shell
   features/       one folder per storefront domain
     home/ collections/ catalog/ product/ cart/ checkout/ account/ orders/
+    customer/ support/
+                  checkout/ holds the Phase 3 demo flow (schema, state, layout, steps)
   hooks/          shared custom hooks
   lib/            env, supabase, cloudinary, query-client, utils
   services/       data access — catalog.js, catalog-query.js, category-meta.js,
@@ -86,12 +88,21 @@ are consistent.
 | `/collections` | `CollectionsPage` | **Implemented** — category tiles plus a fully filterable catalog listing |
 | `/collections/:slug` | `CollectionDetailPage` | **Implemented** — scoped listing with filters, sorting, and pagination in the URL |
 | `/products/:slug` | `ProductDetailPage` | **Implemented** — gallery with enlargement, options, quantity, wishlist, specifications, related products. Keyed on the slug so a different product mounts fresh |
-| `/cart` | `CartPage` | **Implemented** — lines, quantities, remove, move-to-wishlist, merchandise subtotal, unavailable-line recovery. Checkout button disabled |
-| `/checkout` | `CheckoutPage` | Placeholder — **not operational** |
-| `/checkout/payment` | `PaymentPage` | Placeholder — **not operational** |
-| `/orders/:id/confirmation` | `OrderConfirmationPage` | Placeholder |
-| `/account` | `AccountPage` | Placeholder — no auth |
-| `/wishlist` | `WishlistPage` | **Implemented** — browser-local saved products |
+| `/cart` | `CartPage` | **Implemented** — lines, quantities, remove, move-to-wishlist, merchandise subtotal, unavailable-line recovery. Entry point to the demo checkout |
+| `/checkout` | `CheckoutPage` | **Implemented as a frontend demonstration** — contact and delivery form. Takes no payment and creates no order |
+| `/checkout/payment` | `PaymentPage` | **Implemented as a frontend demonstration** — billing address, demo payment-method preference, and the review step. No provider, no credential fields |
+| `/orders/:id/confirmation` | `OrderConfirmationPage` | **Implemented as a frontend demonstration** — reads a frozen in-memory snapshot; shows a demo-session-unavailable state for an unknown id or after a reload |
+| `/account` | `CustomerHubPage` | **Implemented** — customer hub. No authentication exists, so no identity, membership, or order count is shown |
+| `/account/profile` | `ProfilePage` | **Implemented as a session-only preview** — name, email, phone, held in memory and cleared on reload |
+| `/account/addresses` | `AddressPreviewPage` | **Implemented as a session-only preview** — add/edit/delete, exactly one default, held in memory |
+| `/account/orders` | `DemoOrdersPage` | **Implemented** — reads the checkout provider's frozen demo snapshots. No second order store |
+| `/wishlist` | `WishlistPage` | **Implemented** — browser-local saved products, with unavailable-product recovery |
+| `/help` | `HelpPage` | **Implemented** — describes implemented behaviour only |
+| `/contact` | `ContactPage` | **Implemented** — no submission endpoint exists, and the page says so before anything is typed |
+| `/shipping` | `ShippingPage` | **Implemented** — states that no shipping policy has been set |
+| `/returns` | `ReturnsPage` | **Implemented** — states that no returns policy has been set |
+| `/privacy` | `PrivacyPage` | **Implemented** — a marked draft describing observed storage and third-party behaviour |
+| `/terms` | `TermsPage` | **Implemented** — a marked draft on a demonstration site |
 | `*` | `NotFoundPage` | Working |
 
 `errorElement` renders `RouteError`, which distinguishes a 404 from a thrown
@@ -139,10 +150,42 @@ Because this is a SPA, a deep link served by a static host needs a rewrite to
 | URL state | React Router params and search params — filters and pagination belong in the URL so listings are shareable. |
 | Local UI state | `useState` / `useReducer`, co-located. |
 | Cross-cutting client state (cart, wishlist) | React Context — `StoreProvider` in `features/cart/cart-store.jsx`, consumed via the `useStore` hook. Persisted to `localStorage`. |
+| Checkout draft (contact, address, method) | React Context over a reducer — `CheckoutProvider` in `features/checkout/checkout-provider.jsx`, consumed via `useCheckout` / `useCheckoutSession`. **In memory only — never persisted.** |
+| Customer previews (profile, addresses) | React Context over a reducer — `CustomerProvider` in `features/customer/customer-provider.jsx`, consumed via `useCustomer`. **In memory only — never persisted.** Independent of the checkout draft in both directions |
 
 Query defaults: 60s `staleTime`, 5min `gcTime`, one retry, no refetch on window
 focus. The client is created inside `useState` in `providers.jsx` so it is
 constructed exactly once.
+
+### Customer and support features
+
+`features/customer/` follows the same three-way split as the cart and the
+checkout, so Fast Refresh keeps working:
+
+| File | Exports |
+|---|---|
+| `customer-state.js` | The pure reducer and its rules — no React |
+| `customer-context.js` | The context object only |
+| `customer-provider.jsx` | The provider component only |
+| `use-customer.js` | The hook only |
+| `customer-nav.js` | Navigation constants, kept out of the layout component |
+| `customer-schema.js` | Zod rules, reusing the checkout address schema |
+| `demo-orders.js` | Reads the checkout snapshots; no component |
+
+The provider is mounted **inside** `CheckoutProvider` in `providers.jsx`,
+because the orders page reads the checkout snapshots rather than keeping a
+copy:
+
+```
+ErrorBoundary > QueryClientProvider > StoreProvider > CheckoutProvider > CustomerProvider > router
+```
+
+`features/support/` holds the six help and policy pages on a shared layout,
+with navigation constants split out into `support-nav.js` for the same
+Fast Refresh reason.
+
+Full behaviour, privacy properties, and backend seams:
+[`docs/CUSTOMER_PAGES.md`](./CUSTOMER_PAGES.md).
 
 ### Cart and wishlist
 
@@ -163,6 +206,66 @@ Cart line identity is the product plus its selected options (`lineKey`), so the
 same product in two sizes is two lines. Each segment is JSON-encoded before
 joining: encoding "no option" as a bare `-` let a product whose colour is
 literally named `-` collide with one that had no colour selected.
+
+### Checkout (Phase 3 — a frontend demonstration)
+
+`/checkout`, `/checkout/payment`, and `/orders/:id/confirmation` demonstrate
+the checkout screens. **They are not a transaction.** No payment provider is
+integrated, no order is created, no Supabase table is touched, and no payment
+credential is collected anywhere in the flow.
+
+| File | Role |
+|---|---|
+| `checkout-schema.js` | Zod schemas, the Indian state list, phone normalisation, and `resolveBillingAddress` |
+| `checkout-state.js` | Pure reducer, step guards, cart signature, snapshot builder, demo-reference generator |
+| `checkout-provider.jsx` | `CheckoutProvider` — the component |
+| `checkout-context.js` | `CheckoutContext` |
+| `use-checkout.js` | `useCheckout` and `useCheckoutSession` (the draft joined to the live cart) |
+| `checkout-layout.jsx` | Shared shell: brand row, back-to-bag, step indicator, demo notice, two-column body |
+| `checkout-steps.jsx` | The accessible step indicator |
+| `checkout-summary.jsx` | Order-summary sidebar, derived from the live cart |
+| `checkout-guards.jsx` | Blocked-step screen, cart-changed notice, unavailable-lines notice |
+| `address-fields.jsx` | `Field` and the address block shared by delivery and billing |
+| `address-summary.jsx` | Read-back block for an address, with the heading level as a prop |
+| `payment-method-group.jsx` | Native radios in a `radiogroup`, styled as cards |
+| `checkout-review.jsx` | The review step |
+| `checkout-page.jsx` / `payment-page.jsx` | The two route components |
+
+The same three-way split as the cart keeps Fast Refresh working: the provider
+component, the context object, and the hooks each live in their own module.
+
+**Personal data never leaves memory.** Contact and address values are held in
+the reducer for the lifetime of one page session. Nothing is written to
+`localStorage`, `sessionStorage`, a cookie, the URL, the cart storage, a log,
+or an analytics call. A reload loses the draft on purpose; the guarded steps
+explain that and route back rather than redirecting silently. This is asserted
+in the browser suite, which dumps all persistent storage after a completed
+demo checkout and fails on any personal value.
+
+Three rules carry the rest of the design:
+
+- **Billing is derived, not copied.** When "same as delivery" is selected the
+  schema nulls the billing address and `resolveBillingAddress` derives it from
+  whatever the delivery address currently is. Editing delivery afterwards
+  cannot leave a stale billing copy behind. The hidden alternate form is
+  validated only when it is shown, so its half-filled state never blocks
+  progression.
+- **A changed cart invalidates the review.** `cartSignature` fingerprints
+  product, options, quantity, and unit price. When it stops matching what the
+  delivery step was completed against, the review is withdrawn — derived at
+  render, not reset from an effect, so there is no frame in which a stale
+  review is clickable.
+- **Completion freezes a snapshot.** `buildDemoSnapshot` recomputes totals in
+  integer paise from the live cart, and the reducer deep-freezes the result
+  under a `DEMO-`-prefixed `crypto.randomUUID` reference. The real cart is
+  **not** cleared: no order was placed, so emptying someone's bag would be
+  destroying their work over a demonstration.
+
+What the flow deliberately does not do, because nothing in this build supports
+it: no delivery dates, shipping rates, or delivery-method choice; no coupon
+field; no payable grand total; no card, expiry, CVV, UPI-ID, or bank field; no
+"Pay" action or processing message; and on the confirmation, no paid status,
+invoice, tracking rail, delivery promise, or verified-order badge.
 
 Reading, validating, and migrating the persisted value lives in
 `features/cart/cart-storage.js`, separately from the provider so the rules can

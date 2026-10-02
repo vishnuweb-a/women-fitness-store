@@ -4,7 +4,6 @@ import {
   Heart,
   Menu,
   PackageCheck,
-  RotateCcw,
   Search,
   ShieldCheck,
   ShoppingBag,
@@ -41,23 +40,30 @@ const NAV_ITEMS = [
   })),
 ]
 
-/** Thin promotional strip above the header, as in every reference screen. */
+/**
+ * Thin strip above the header, as in every reference screen.
+ *
+ * The reference fills it with "Free shipping on orders over ₹999" and
+ * "30-day easy returns". Neither policy has been set — the shipping and
+ * returns pages say so — and a claim repeated on every page of the site is
+ * the last place to leave an invented commitment. What it carries instead is
+ * true of this build, and links to the page that explains it.
+ */
 export function AnnouncementBar() {
   return (
     <div className="bg-ink-950 text-ink-200">
       <div className="container-site flex min-h-9 flex-wrap items-center justify-center gap-x-6 gap-y-1 py-2 text-center text-xs sm:justify-between">
         <p className="flex items-center gap-1.5">
-          <PackageCheck className="size-3.5" aria-hidden="true" focusable="false" />
-          Free shipping on orders over ₹999
-        </p>
-        <p className="hidden items-center gap-1.5 sm:flex">
-          <RotateCcw className="size-3.5" aria-hidden="true" focusable="false" />
-          30-day easy returns
-        </p>
-        <p className="hidden items-center gap-1.5 md:flex">
           <ShieldCheck className="size-3.5" aria-hidden="true" focusable="false" />
-          Authentic &amp; quality products
+          Demonstration storefront — no payment is taken
         </p>
+        <Link
+          to="/help"
+          className="hidden min-h-9 items-center gap-1.5 underline-offset-2 transition-colors hover:text-white hover:underline sm:inline-flex"
+        >
+          <PackageCheck className="size-3.5" aria-hidden="true" focusable="false" />
+          See what this storefront can do
+        </Link>
       </div>
     </div>
   )
@@ -163,8 +169,16 @@ export function SiteHeader() {
                 to="/account"
                 className={navLinkClass}
                 onClick={() => setMobileNavOpen(false)}
+                end
               >
-                Account
+                Customer hub
+              </NavLink>
+              <NavLink
+                to="/help"
+                className={navLinkClass}
+                onClick={() => setMobileNavOpen(false)}
+              >
+                Help and support
               </NavLink>
             </nav>
           </SheetContent>
@@ -193,7 +207,9 @@ export function SiteHeader() {
             <Search aria-hidden="true" focusable="false" />
           </Button>
 
-          <Button variant="ghost" size="icon" aria-label="Your account" asChild>
+          {/* "Customer hub", not "Your account": there is no account and no
+              sign-in in this build, so the label names what the link opens. */}
+          <Button variant="ghost" size="icon" aria-label="Customer hub" asChild>
             <Link to="/account">
               <User aria-hidden="true" focusable="false" />
             </Link>

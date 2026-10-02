@@ -83,6 +83,18 @@ export function StoreProvider({ children }) {
     setWishlistIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]))
   }, [])
 
+  /**
+   * Remove a saved product unconditionally.
+   *
+   * Distinct from `toggleWishlist`: the wishlist page's remove action must
+   * remove, never re-add. Toggling an id that is somehow absent would silently
+   * save it instead, which is the opposite of what the button says.
+   */
+  const removeFromWishlist = useCallback((productId) => {
+    const id = String(productId)
+    setWishlistIds((ids) => ids.filter((x) => x !== id))
+  }, [])
+
   const isWishlisted = useCallback(
     (productId) => wishlistIds.includes(String(productId)),
     [wishlistIds],
@@ -137,10 +149,26 @@ export function StoreProvider({ children }) {
     return { cartItems: items, unavailableItems: unavailable }
   }, [cartLines])
 
-  const wishlistItems = useMemo(
-    () => wishlistIds.map((id) => getProductById(id)).filter(Boolean),
-    [wishlistIds],
-  )
+  /**
+   * Wishlist display data, derived from the catalog like the cart's.
+   *
+   * A saved id whose product has left the catalog is reported separately as
+   * an "unavailable" entry rather than silently vanishing from the list. The
+   * person saved it deliberately, so the page can say what happened and offer
+   * to remove it — the same contract the cart gives an unavailable line.
+   */
+  const { wishlistItems, unavailableWishlistIds } = useMemo(() => {
+    const items = []
+    const missing = []
+
+    for (const id of wishlistIds) {
+      const product = getProductById(id)
+      if (product) items.push(product)
+      else missing.push(id)
+    }
+
+    return { wishlistItems: items, unavailableWishlistIds: missing }
+  }, [wishlistIds])
 
   const value = useMemo(
     () => ({
@@ -156,14 +184,19 @@ export function StoreProvider({ children }) {
       moveToWishlist,
       clearCart,
       wishlistItems,
+      unavailableWishlistIds,
+      // Counts products that can actually be shown, so the header badge
+      // always matches what the wishlist page renders as a card.
       wishlistCount: wishlistItems.length,
       toggleWishlist,
       isWishlisted,
+      removeFromWishlist,
     }),
     [
       cartItems,
       unavailableItems,
       wishlistItems,
+      unavailableWishlistIds,
       addToCart,
       removeFromCart,
       setQuantity,
@@ -171,6 +204,7 @@ export function StoreProvider({ children }) {
       clearCart,
       toggleWishlist,
       isWishlisted,
+      removeFromWishlist,
     ],
   )
 

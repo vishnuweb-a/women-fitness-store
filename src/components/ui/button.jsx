@@ -23,7 +23,15 @@ const buttonVariants = cva(
         default: "h-9 px-4 py-2 has-[>svg]:px-3",
         xs: "h-6 gap-1 rounded-md px-2 text-xs has-[>svg]:px-1.5 [&_svg:not([class*='size-'])]:size-3",
         sm: "h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",
-        lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
+        // 44px, not the shadcn default of h-10 (40px). `lg` is this
+        // project's primary action size, and every call site was already
+        // patching it back up to the 44px touch-target minimum with a local
+        // `min-h-11`. Fixing it here makes the default correct instead of
+        // relying on each caller to remember. `default` and `sm` are left
+        // alone: they are compact, secondary controls, and inflating every
+        // one of them would wreck the density of the filter rail and the
+        // listing toolbar.
+        lg: "h-11 rounded-md px-6 has-[>svg]:px-4",
         icon: "size-9",
         "icon-xs": "size-6 rounded-md [&_svg:not([class*='size-'])]:size-3",
         "icon-sm": "size-8",

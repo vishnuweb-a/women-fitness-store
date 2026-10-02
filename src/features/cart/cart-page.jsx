@@ -22,7 +22,8 @@ import { formatPrice } from '@/services/catalog'
  *   - **No free-shipping banner, promo code, or delivery date.** None of it is
  *     backed by anything.
  *   - **No "In stock" markers.** Stock is unknown for every product.
- *   - **Checkout is disabled** and says so. No payment provider is integrated.
+ *   - **Checkout leads to a demo flow**, named as one. No payment provider is
+ *     integrated and no order is ever created.
  *
  * Totals are derived from the catalog at render time, never from storage, so a
  * price change is reflected immediately. All money is integer paise until the
@@ -53,6 +54,10 @@ export function CartPage() {
   }
 
   const breadcrumbs = [{ label: 'Home', to: '/' }, { label: 'Your bag' }]
+
+  // Unavailable lines cannot be priced, so the demo checkout would have to
+  // either ignore or invent them. It stays closed until they are removed.
+  const canCheckout = cartItems.length > 0 && unavailableItems.length === 0
 
   if (cartItems.length === 0 && unavailableItems.length === 0) {
     return (
@@ -292,16 +297,36 @@ export function CartPage() {
               calculated in this build, so no payable total is shown.
             </p>
 
-            <Button disabled className="mt-5 w-full" size="lg">
-              Checkout unavailable
-            </Button>
+            {/*
+              The demo checkout flow. The wording names what it is before it is
+              entered — this button leads to a demonstration of the checkout
+              screens, not to a purchase. Lines whose product has left the
+              catalog cannot be priced, so checkout stays closed until they are
+              removed.
+            */}
+            {canCheckout ? (
+              <Button asChild className="mt-5 min-h-11 w-full" size="lg">
+                <Link to="/checkout">Continue to demo checkout</Link>
+              </Button>
+            ) : (
+              <Button disabled className="mt-5 min-h-11 w-full" size="lg">
+                Continue to demo checkout
+              </Button>
+            )}
+
+            {unavailableItems.length > 0 && (
+              <p className="mt-2 text-xs text-muted-foreground text-pretty">
+                Remove the items that are no longer in the catalog to continue.
+              </p>
+            )}
 
             <p className="mt-3 flex gap-2 text-xs text-muted-foreground">
               <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" focusable="false" />
               <span className="text-pretty">
-                This is a demonstration storefront. Checkout and payment are not
-                operational, no order can be placed, and nothing in your bag is
-                reserved. Your bag is stored in this browser only.
+                This is a demonstration storefront. Checkout is a frontend
+                demonstration only: no payment will be taken, no order will be
+                placed, and nothing in your bag is reserved. Your bag is stored in
+                this browser only.
               </span>
             </p>
           </div>

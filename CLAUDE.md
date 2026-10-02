@@ -28,6 +28,8 @@ what Claude in particular tends to get wrong here.
 | 2 | [docs/PROJECT_STATUS.md](./docs/PROJECT_STATUS.md) | What actually exists right now versus what is planned |
 | 3 | [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) | Where code belongs |
 | 4 | [docs/DESIGN_SYSTEM.md](./docs/DESIGN_SYSTEM.md) | Tokens and visual direction (for UI work) |
+| 4a | [docs/CHECKOUT.md](./docs/CHECKOUT.md) | Before touching checkout, billing, or the confirmation |
+| 4b | [docs/CUSTOMER_PAGES.md](./docs/CUSTOMER_PAGES.md) | Before touching the customer, wishlist, or support pages |
 | 5 | [docs/SKILLS_INDEX.md](./docs/SKILLS_INDEX.md) | Which skills apply, and their caveats |
 | 6 | The relevant `SKILL.md` files themselves | The actual guidance |
 
@@ -68,8 +70,12 @@ than from memory — several directory names differ from what you might guess.
 
 - **Do not claim a check passed unless you ran it and saw it pass.** Quote the
   failure if it failed.
-- **Do not describe checkout or payment as working.** They are placeholder
-  routes. No payment provider is integrated.
+- **Do not describe checkout or payment as working.** Phase 3 built the
+  checkout screens as a *demonstration*: they validate, navigate, and render,
+  but take no payment, create no order, and persist nothing server-side. No
+  payment provider is integrated. Never add a card, expiry, CVV, UPI-ID, or
+  banking field to the flow, and never show a payable grand total, a delivery
+  date, a paid status, an invoice, or tracking — none of them exist.
 - Distinguish verified facts from assumptions in what you report.
 - The database is currently empty — no tables exist. Do not write code that
   assumes a schema without first checking or creating one.

@@ -36,8 +36,41 @@ const CartPage = lazy(() =>
 const WishlistPage = lazy(() =>
   import('@/features/account/wishlist-page').then((m) => ({ default: m.WishlistPage })),
 )
-const AccountPage = lazy(() =>
-  import('@/features/account/account-page').then((m) => ({ default: m.AccountPage })),
+const CustomerHubPage = lazy(() =>
+  import('@/features/customer/customer-hub-page').then((m) => ({
+    default: m.CustomerHubPage,
+  })),
+)
+const ProfilePage = lazy(() =>
+  import('@/features/customer/profile-page').then((m) => ({ default: m.ProfilePage })),
+)
+const AddressPreviewPage = lazy(() =>
+  import('@/features/customer/address-preview-page').then((m) => ({
+    default: m.AddressPreviewPage,
+  })),
+)
+const DemoOrdersPage = lazy(() =>
+  import('@/features/customer/demo-orders-page').then((m) => ({
+    default: m.DemoOrdersPage,
+  })),
+)
+const HelpPage = lazy(() =>
+  import('@/features/support/help-page').then((m) => ({ default: m.HelpPage })),
+)
+const ContactPage = lazy(() =>
+  import('@/features/support/contact-page').then((m) => ({ default: m.ContactPage })),
+)
+const ShippingPage = lazy(() =>
+  import('@/features/support/policy-pages').then((m) => ({ default: m.ShippingPage })),
+)
+const ReturnsPage = lazy(() =>
+  import('@/features/support/policy-pages').then((m) => ({ default: m.ReturnsPage })),
+)
+const PrivacyPage = lazy(() =>
+  import('@/features/support/policy-pages').then((m) => ({ default: m.PrivacyPage })),
+)
+const TermsPage = lazy(() =>
+  import('@/features/support/policy-pages').then((m) => ({ default: m.TermsPage })),
 )
 const CheckoutPage = lazy(() =>
   import('@/features/checkout/checkout-page').then((m) => ({ default: m.CheckoutPage })),
@@ -85,8 +118,44 @@ export function WishlistRoute() {
   return withFallback(<WishlistPage />)
 }
 
-export function AccountRoute() {
-  return withFallback(<AccountPage />)
+export function CustomerHubRoute() {
+  return withFallback(<CustomerHubPage />)
+}
+
+export function ProfileRoute() {
+  return withFallback(<ProfilePage />)
+}
+
+export function AddressPreviewRoute() {
+  return withFallback(<AddressPreviewPage />)
+}
+
+export function DemoOrdersRoute() {
+  return withFallback(<DemoOrdersPage />)
+}
+
+export function HelpRoute() {
+  return withFallback(<HelpPage />)
+}
+
+export function ContactRoute() {
+  return withFallback(<ContactPage />)
+}
+
+export function ShippingRoute() {
+  return withFallback(<ShippingPage />)
+}
+
+export function ReturnsRoute() {
+  return withFallback(<ReturnsPage />)
+}
+
+export function PrivacyRoute() {
+  return withFallback(<PrivacyPage />)
+}
+
+export function TermsRoute() {
+  return withFallback(<TermsPage />)
 }
 
 export function CheckoutRoute() {

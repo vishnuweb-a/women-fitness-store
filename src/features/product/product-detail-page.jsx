@@ -28,8 +28,9 @@ import { cn } from '@/lib/utils'
  *     unknown for every product.
  *   - **No customer reviews or star summary.** FITNEX has collected none. The
  *     scraped marketplace rating is shown only with its origin stated.
- *   - **No "Buy now".** Checkout is not operational; a second checkout-shaped
- *     button would be a lie.
+ *   - **No "Buy now".** Checkout is a demonstration that takes no payment, so
+ *     a second checkout-shaped button promising a faster purchase would be a
+ *     lie about something people act on.
  *   - **No size chart, care instructions, shipping policy, or guarantee tabs**
  *     beyond the specification fields the source actually supplies.
  *
@@ -299,7 +300,7 @@ export function ProductDetailPage() {
 
           <p className="mt-1 text-xs text-muted-foreground text-pretty">
             Your bag is saved in this browser only. Adding an item does not reserve
-            stock, and checkout is not operational.
+            stock, and checkout is a demonstration that takes no payment.
           </p>
 
           {product.description && (
