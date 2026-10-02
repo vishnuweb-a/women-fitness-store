@@ -47,3 +47,6 @@ public/assets/products/
 # Private Cloudinary upload checkpoint: resumable upload state, not a
 # deliverable. The public manifest in src/data/ carries the safe metadata.
 .cloudinary-upload-checkpoint.json
+
+# Vercel CLI local link/build state
+.vercel
