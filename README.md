@@ -1,6 +1,6 @@
 # FITNEX WOMEN
 
-E-commerce storefront for women's sports and fitness accessories.
+E-commerce storefront for women's sports and fitness accessories. made the change
 *Stronger Every Day.*
 
 A React single-page application built with Vite, Tailwind CSS v4, and its very mordern 
