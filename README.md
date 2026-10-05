@@ -1,7 +1,7 @@
 # FITNEX WOMEN
 
 E-commerce storefront for women's sports and fitness accessories. made the change
-*Stronger Every Day.*
+*Stronger Every Day. and make it cool *
 
 A React single-page application built with Vite, Tailwind CSS v4, and its very mordern 
 shadcn/ui, with Supabase as the intended data layer.
