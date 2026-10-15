@@ -1,6 +1,6 @@
 # Project Status
 
-**Last updated:** 2026-10-02
+**Last updated:** 2026-10-15
 **Current phase:** Phase 5 — final frontend polish, accessibility,
 performance, and end-to-end QA (complete)
 **Next phase:** Backend. The frontend demonstration is finished; what remains
@@ -624,6 +624,57 @@ before a real launch are in section 8 of
 [`docs/FRONTEND_FINAL_QA.md`](./FRONTEND_FINAL_QA.md).
 
 Nothing was deployed, committed, or pushed.
+
+## Company information update — 2026-10-15
+
+The owner supplied the operating company's details and the production domain.
+The site is live at `https://www.aurelix.fun/` (confirmed by fetching it: it
+serves this build).
+
+### Delivered
+
+| Area | State |
+|---|---|
+| `src/lib/company-info.js` | Single source: AURELIX PRIVATE LIMITED, registered address, phone `8796636233`, email, website; derived `tel:+918796636233`, `mailto:`, `SITE_ORIGIN` |
+| `components/shared/company-contact.jsx` | Reusable `<address>` block with a labelled `dl`; phone, email, and website are links |
+| Footer | New Company information band (operator, registered address, phone, email); copyright now `© <year> AURELIX PRIVATE LIMITED. All rights reserved.` with the year computed; Help column adds About us and Disclaimer; "Returns" relabelled "Returns & refunds" |
+| `SupportLayout` | Ends every support page with the company block (contact page opts out because it leads with it) |
+| `/contact` | Publishes the company details; form still has no endpoint and now points to email/phone |
+| `/returns` | Retitled "Returns, refunds & cancellations"; cancellation added to the awaiting-confirmation list. Still no policy stated |
+| `/privacy`, `/terms` | Name the operating company and its registered address; the status banners no longer say "names no legal entity". Still drafts: no jurisdiction, retention, or terms of sale |
+| `/about` (new) | Factual: what is sold, the operator, demo status |
+| `/disclaimer` (new) | Draft built from observed behaviour; includes a general "not medical or training advice" note for owner review |
+| `PageMeta` | Canonical URL and `og:url` on `SITE_ORIGIN` for indexable routes; none on `noIndex` routes |
+| Product-unavailable state | Now `noIndex`, so it does not emit a canonical for a non-existent product |
+
+### Verified by running
+
+| Check | Result |
+|---|---|
+| `npm run lint` | Clean |
+| `npm test` | 234 passed / 234 |
+| `npm run build` | Succeeded |
+| Browser harness (Playwright + axe-core, outside the repo) against `vite preview` | 16 routes x 4 viewports (1440, 768, 390, 320): 859 / 862 checks passed. The 3 failures were a harness timing error (asserted before a lazy route mounted); re-checked after mount: one title, one canonical, one `og:url` |
+| Per route | HTTP 200 on direct load, 0 console errors, one `h1`, one `<title>`, no horizontal overflow, footer shows name/address/copyright, exactly one footer `tel:` and `mailto:` link |
+| Support pages | Exactly one company `<address>` in `main`, no overflow at 320 px |
+| axe (WCAG 2.1 A/AA) | 0 violations at 1440 and 320 on all 16 routes |
+| Canonical | Matches `https://www.aurelix.fun<path>` on indexable routes; absent on `noIndex` routes |
+| Footer links | All 18 internal links resolve to real pages |
+| Keyboard | `tel:` and `mailto:` links reachable by Tab, with a visible focus outline |
+
+Not verified: a real phone dialler or mail client opening from the links, real
+devices, a screen reader, or Firefox/WebKit. Not deployed.
+
+### Still for the owner
+
+- Confirm that FITNEX WOMEN is a brand operated by AURELIX PRIVATE LIMITED, as
+  the pages now state.
+- Shipping, returns/refunds/cancellation, and the substantive privacy, terms,
+  and disclaimer terms (jurisdiction, retention, liability) remain unset.
+- No sitemap or `robots.txt` exists. Adding one also needs a `vercel.json`
+  rewrite exclusion, because the current rewrite would serve `index.html` for
+  `/sitemap.xml`.
+- No structured data (JSON-LD) exists; none was added.
 
 ## Next phase — backend
 

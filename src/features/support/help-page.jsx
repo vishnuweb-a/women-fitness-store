@@ -213,8 +213,13 @@ export function HelpPage() {
           <Link to="/terms" className="font-medium text-brand-600 hover:underline">
             terms
           </Link>{' '}
-          pages are clearly marked drafts describing observed behaviour, pending a
-          merchant and legal review. Each page carries its status at the top.
+          pages, and the{' '}
+          <Link to="/disclaimer" className="font-medium text-brand-600 hover:underline">
+            disclaimer
+          </Link>
+          , are clearly marked drafts describing observed behaviour, pending a legal
+          review. Each page carries its status at the top, and ends with the
+          operating company's contact details.
         </p>
       </SupportSection>
     </SupportLayout>

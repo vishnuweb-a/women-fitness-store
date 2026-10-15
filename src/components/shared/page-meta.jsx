@@ -1,3 +1,6 @@
+import { useLocation } from 'react-router-dom'
+
+import { SITE_ORIGIN } from '@/lib/company-info'
 import { buildPageTitle, DEFAULT_DESCRIPTION, SITE_NAME } from '@/lib/page-title'
 
 /**
@@ -19,20 +22,32 @@ import { buildPageTitle, DEFAULT_DESCRIPTION, SITE_NAME } from '@/lib/page-title
  * results, so they opt out of indexing. See `docs/FRONTEND_FINAL_QA.md` for
  * what has to change before a real launch.
  *
+ * ## Canonical URL
+ *
+ * Indexable routes declare a canonical URL and a matching `og:url` on the
+ * production origin (`SITE_ORIGIN`, supplied by the owner). It is the path
+ * alone: filter, sort, and page parameters are views of one listing, not
+ * separate pages, so they all point at the unfiltered URL. A `noIndex` route
+ * declares none — a page asking not to be indexed has no canonical to offer.
+ *
  * ## What this deliberately omits
  *
- * No canonical URL, no `og:url`, and no `og:image`: this build has no
- * production domain and no social-preview asset, and inventing either would
- * put a wrong URL into every share card.
+ * No `og:image`: no social-preview asset exists, and pointing every share
+ * card at an arbitrary banner would misrepresent most pages.
  */
 export function PageMeta({ title, description = DEFAULT_DESCRIPTION, noIndex = false }) {
+  const { pathname } = useLocation()
   const fullTitle = buildPageTitle(title)
+  const path = pathname === '/' ? '/' : pathname.replace(/\/+$/, '')
+  const canonical = noIndex ? null : `${SITE_ORIGIN}${path}`
 
   return (
     <>
       <title>{fullTitle}</title>
       <meta name="description" content={description} />
       {noIndex && <meta name="robots" content="noindex, nofollow" />}
+      {canonical && <link rel="canonical" href={canonical} />}
+      {canonical && <meta property="og:url" content={canonical} />}
       <meta property="og:site_name" content={SITE_NAME} />
       <meta property="og:type" content="website" />
       <meta property="og:title" content={fullTitle} />

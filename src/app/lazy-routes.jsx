@@ -60,6 +60,12 @@ const HelpPage = lazy(() =>
 const ContactPage = lazy(() =>
   import('@/features/support/contact-page').then((m) => ({ default: m.ContactPage })),
 )
+const AboutPage = lazy(() =>
+  import('@/features/support/about-page').then((m) => ({ default: m.AboutPage })),
+)
+const DisclaimerPage = lazy(() =>
+  import('@/features/support/disclaimer-page').then((m) => ({ default: m.DisclaimerPage })),
+)
 const ShippingPage = lazy(() =>
   import('@/features/support/policy-pages').then((m) => ({ default: m.ShippingPage })),
 )
@@ -140,6 +146,14 @@ export function HelpRoute() {
 
 export function ContactRoute() {
   return withFallback(<ContactPage />)
+}
+
+export function AboutRoute() {
+  return withFallback(<AboutPage />)
+}
+
+export function DisclaimerRoute() {
+  return withFallback(<DisclaimerPage />)
 }
 
 export function ShippingRoute() {

@@ -1,10 +1,17 @@
 /**
  * Contact.
  *
- * ## There is no endpoint, and the page says so before you type
+ * ## Contact details
  *
- * No form handler, mail service, ticketing system, or inbox is configured in
- * this build. So the form:
+ * The operating company's official phone number, email address, and
+ * registered address lead the page, read from `lib/company-info.js`. They are
+ * the real ways to reach the business. No opening hours or response time is
+ * stated, because none has been supplied.
+ *
+ * ## The form has no endpoint, and the page says so before you type
+ *
+ * No form handler, mail service, or ticketing system is connected to the
+ * form. So it:
  *
  *   - states that it cannot send a message, **above** the fields rather than
  *     after a submission;
@@ -14,22 +21,19 @@
  *
  * It is kept rather than removed because the validation and layout are what a
  * connected form would use, and a disabled-looking form that silently does
- * nothing would be worse than one that explains itself.
- *
- * ## Contact details
- *
- * No email address, phone number, or postal address is shown, because none is
- * configured. Publishing a plausible-looking one would send people to an
- * address that does not answer.
+ * nothing would be worse than one that explains itself. Every message it
+ * shows points to the email address and phone number instead.
  */
 import { useId, useState } from 'react'
 import { MailX } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
+import { CompanyContact } from '@/components/shared/company-contact'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { PolicyStatus, SupportLayout, SupportSection } from '@/features/support/support-layout'
+import { COMPANY_INFO, COMPANY_PHONE_DISPLAY } from '@/lib/company-info'
 
 export function ContactPage() {
   const nameId = useId()
@@ -75,7 +79,7 @@ export function ContactPage() {
     }
 
     setNotice(
-      'Your message was not sent. This form has no destination configured, so nothing left your browser and nothing was stored. Please use another way to reach FITNEX until contact is connected.',
+      `Your message was not sent. This form has no destination configured, so nothing left your browser and nothing was stored. Please email ${COMPANY_INFO.email} or call ${COMPANY_PHONE_DISPLAY} instead.`,
     )
   }
 
@@ -83,27 +87,22 @@ export function ContactPage() {
 
   return (
     <SupportLayout
-      title="Contact"
-      description="How to reach FITNEX WOMEN — and, honestly, what is not available yet."
+      title="Contact us"
+      description={`How to reach ${COMPANY_INFO.legalName}, the company that operates FITNEX WOMEN.`}
+      showCompanyContact={false}
       status={
         <PolicyStatus tone="pending">
-          No contact channel is configured for this storefront. There is no published
-          email address, phone number, or postal address, and the form below cannot
-          send a message.
+          The message form on this page is not connected yet and cannot send anything.
+          To reach us, use the phone number or email address below.
         </PolicyStatus>
       }
     >
       <SupportSection id="contact-channels" title="Contact details">
         <p>
-          None are published here. An email address, phone number, or postal address
-          would normally appear in this section, but none has been configured for
-          this build — and showing a plausible-looking one would direct you somewhere
-          that does not answer.
+          FITNEX WOMEN is operated by {COMPANY_INFO.legalName}. You can reach the
+          company by phone or email, or write to its registered address.
         </p>
-        <p>
-          When a merchant contact channel is set up, it will appear here and the form
-          below will begin to work.
-        </p>
+        <CompanyContact />
       </SupportSection>
 
       <SupportSection id="contact-form" title="Message form">
@@ -112,7 +111,7 @@ export function ContactPage() {
           <span className="text-pretty">
             <strong className="font-semibold">This form cannot send a message.</strong>{' '}
             No submission endpoint exists, so anything you type stays in this page and
-            is discarded. It is shown so the layout and validation can be reviewed.
+            is discarded. Please use the email address or phone number above instead.
           </span>
         </p>
 

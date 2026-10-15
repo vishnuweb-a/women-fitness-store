@@ -1,6 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom'
 
 import {
+  AboutRoute,
   AddressPreviewRoute,
   CartRoute,
   CheckoutRoute,
@@ -9,6 +10,7 @@ import {
   ContactRoute,
   CustomerHubRoute,
   DemoOrdersRoute,
+  DisclaimerRoute,
   HelpRoute,
   OrderConfirmationRoute,
   PaymentRoute,
@@ -74,10 +76,12 @@ export const router = createBrowserRouter([
       { path: 'wishlist', element: <WishlistRoute /> },
       { path: 'help', element: <HelpRoute /> },
       { path: 'contact', element: <ContactRoute /> },
+      { path: 'about', element: <AboutRoute /> },
       { path: 'shipping', element: <ShippingRoute /> },
       { path: 'returns', element: <ReturnsRoute /> },
       { path: 'privacy', element: <PrivacyRoute /> },
       { path: 'terms', element: <TermsRoute /> },
+      { path: 'disclaimer', element: <DisclaimerRoute /> },
       { path: '*', element: <NotFoundPage /> },
     ],
   },

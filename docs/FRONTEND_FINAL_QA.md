@@ -397,10 +397,10 @@ or new persistence was added.
 
 ### Deliberately omitted
 
-**No canonical URL, no `og:url`, and no `og:image`.** This build has no
-production domain and no social-preview asset. Inventing either would put a
-wrong URL into every share card. Both must be added at launch, by whoever owns
-the domain.
+**No `og:image`.** No social-preview asset exists. *(Superseded 2026-10-15:
+the owner supplied the production domain `https://www.aurelix.fun/`, and
+indexable routes now declare a canonical URL and `og:url`. See
+`docs/PROJECT_STATUS.md`, "Company information update".)*
 
 ### Indexing configuration for the demo
 

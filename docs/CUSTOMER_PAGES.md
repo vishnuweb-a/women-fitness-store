@@ -21,11 +21,13 @@ and [`CHECKOUT.md`](./CHECKOUT.md) for the demo checkout these pages read from.
 | `/account/orders` | `features/customer/demo-orders-page.jsx` | Demo checkout snapshots from this browser tab |
 | `/wishlist` | `features/account/wishlist-page.jsx` | Saved products — persistent in this browser |
 | `/help` | `features/support/help-page.jsx` | What the storefront does, in plain language |
-| `/contact` | `features/support/contact-page.jsx` | Contact, and why the form cannot send |
+| `/contact` | `features/support/contact-page.jsx` | Company phone, email, and address; the form cannot send |
+| `/about` | `features/support/about-page.jsx` | What the store is, and who operates it |
 | `/shipping` | `features/support/policy-pages.jsx` | Policy not set |
-| `/returns` | `features/support/policy-pages.jsx` | Policy not set |
+| `/returns` | `features/support/policy-pages.jsx` | Returns, refunds & cancellations — policy not set |
 | `/privacy` | `features/support/policy-pages.jsx` | Draft: observed storage and third-party behaviour |
 | `/terms` | `features/support/policy-pages.jsx` | Draft notes on a demonstration site |
+| `/disclaimer` | `features/support/disclaimer-page.jsx` | Draft: limits of product information and features |
 
 Every route is lazy-loaded through `app/lazy-routes.jsx` and declared in
 `app/router.jsx`. The Phase 0 `/account` placeholder
@@ -36,7 +38,9 @@ Every route is lazy-loaded through `app/lazy-routes.jsx` and declared in
 - **Header** — the account icon is labelled "Customer hub", not "Your
   account". The mobile sheet lists Customer hub and Help and support.
 - **Footer** — a `Customer` column (hub, profile, addresses, demo orders,
-  wishlist, bag) and a `Help` column (all six support pages).
+  wishlist, bag), a `Help` column (all eight support pages), and a Company
+  information band with the operator's name, registered address, and
+  clickable phone and email.
 - **Customer pages** — one `nav` (`customer-layout.jsx`), rendered as a
   sticky sidebar from `lg:` up and a horizontal scroller below it. The same
   markup in both, so there is one tab sequence and one `aria-current="page"`.
@@ -191,11 +195,18 @@ demo-session-unavailable state and does not echo the id back.
 | Page | Status | Why |
 |---|---|---|
 | `/help` | Describes implemented behaviour only | Everything stated was checked against the build |
-| `/contact` | **No contact channel configured** | No email, phone, or address is published, because none is set. The form states it cannot send **before** you type, never reports success, and makes no network request |
+| `/contact` | **Company contact published; form not connected** | The phone, email, and registered address of AURELIX PRIVATE LIMITED are published from `lib/company-info.js`. No hours or response time is stated. The form states it cannot send **before** you type, never reports success, makes no network request, and points to the email and phone instead |
+| `/about` | **Factual only** | What the store sells, its operator, and its demo status. No founding story, history, or certification is claimed |
 | `/shipping` | **Policy not set** | No delivery area, charge, timeframe, carrier, or tracking is stated |
 | `/returns` | **Policy not set** | No return window, eligibility, refund rule, or exchange term is stated |
 | `/privacy` | **Draft for review** | Describes observed storage and third-party behaviour; no legal entity, jurisdiction, retention period, or certification is claimed |
 | `/terms` | **Draft for review** | Draft notes on a demonstration site; no terms of sale |
+| `/disclaimer` | **Draft for review** | Built from observed behaviour; no liability limit or governing law is set |
+
+Every support page now ends with the operating company's details
+(`CompanyContact`, rendered once by `SupportLayout`). Naming the operator does
+not settle any substantive term: privacy and terms still name no
+jurisdiction, and shipping and returns remain unset.
 
 Each page carries its status in a visible banner at the top
 (`PolicyStatus` in `support-layout.jsx`), not in a footnote. No other
@@ -233,9 +244,9 @@ Each is a deliberate absence, not an oversight.
 | Orders | Frozen in-memory demo snapshots | An orders table, real order numbers, server-side persistence, and history that survives a reload |
 | Order detail | The existing confirmation route | Status, fulfilment, tracking, and invoices — once those exist |
 | Wishlist | `localStorage`, per browser | A synced wishlist per account, with the local list as the merge source on first sign-in |
-| Contact | No endpoint; the form says so | A form handler or ticketing system, and published contact details |
+| Contact | Company details published; the form has no endpoint and says so | A form handler or ticketing system |
 | Shipping / returns | Policies not set | Merchant-confirmed policies, rate quotes, serviceability by PIN, and a returns process |
-| Privacy / terms | Drafts describing observed behaviour | Merchant legal entity, jurisdiction, lawful bases, retention, and data-rights routes, reviewed by a lawyer |
+| Privacy / terms / disclaimer | Drafts describing observed behaviour; operator named | Jurisdiction, lawful bases, retention, data-rights routes, and liability terms, reviewed by a lawyer |
 
 Route protection is **not** on this list as a frontend concern: when
 authentication arrives, the server must enforce access, and any client-side

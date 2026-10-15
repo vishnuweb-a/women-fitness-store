@@ -68,6 +68,7 @@ export function ProductDetailPage() {
         <PageMeta
           title="Product not available"
           description="This product is not in the FITNEX WOMEN catalog."
+          noIndex
         />
         <Breadcrumbs
           items={[

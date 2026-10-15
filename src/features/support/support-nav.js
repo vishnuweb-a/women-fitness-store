@@ -8,8 +8,10 @@
 export const SUPPORT_NAV = [
   { label: 'Help centre', to: '/help' },
   { label: 'Contact', to: '/contact' },
+  { label: 'About us', to: '/about' },
   { label: 'Shipping', to: '/shipping' },
-  { label: 'Returns', to: '/returns' },
+  { label: 'Returns & refunds', to: '/returns' },
   { label: 'Privacy', to: '/privacy' },
   { label: 'Terms', to: '/terms' },
+  { label: 'Disclaimer', to: '/disclaimer' },
 ]

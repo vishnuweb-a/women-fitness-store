@@ -98,11 +98,13 @@ are consistent.
 | `/account/orders` | `DemoOrdersPage` | **Implemented** — reads the checkout provider's frozen demo snapshots. No second order store |
 | `/wishlist` | `WishlistPage` | **Implemented** — browser-local saved products, with unavailable-product recovery |
 | `/help` | `HelpPage` | **Implemented** — describes implemented behaviour only |
-| `/contact` | `ContactPage` | **Implemented** — no submission endpoint exists, and the page says so before anything is typed |
+| `/contact` | `ContactPage` | **Implemented** — publishes the company's phone, email, and registered address; the form has no submission endpoint and says so before anything is typed |
+| `/about` | `AboutPage` | **Implemented** — what FITNEX WOMEN sells, its operator, and where the store is today |
 | `/shipping` | `ShippingPage` | **Implemented** — states that no shipping policy has been set |
-| `/returns` | `ReturnsPage` | **Implemented** — states that no returns policy has been set |
-| `/privacy` | `PrivacyPage` | **Implemented** — a marked draft describing observed storage and third-party behaviour |
-| `/terms` | `TermsPage` | **Implemented** — a marked draft on a demonstration site |
+| `/returns` | `ReturnsPage` | **Implemented** — returns, refunds, and cancellations; states that no policy has been set |
+| `/privacy` | `PrivacyPage` | **Implemented** — a marked draft describing observed storage and third-party behaviour; names the operating company |
+| `/terms` | `TermsPage` | **Implemented** — a marked draft on a demonstration site; names the operating company |
+| `/disclaimer` | `DisclaimerPage` | **Implemented** — a marked draft on the limits of product information and features |
 | `*` | `NotFoundPage` | Working |
 
 `errorElement` renders `RouteError`, which distinguishes a 404 from a thrown
@@ -143,8 +145,11 @@ Fast Refresh and trips `react-refresh/only-export-components`.
 `noindex, nofollow` is applied to the cart, the demo checkout and its
 confirmation, every `/account/*` preview, and the not-found states — pages that
 are either per-visitor or fabricated demo state. Catalog and support pages stay
-indexable. There is deliberately **no canonical URL, `og:url`, or `og:image`**:
-this build has no production domain and no social-preview asset.
+indexable. Indexable routes declare a canonical URL and a matching `og:url` on
+`SITE_ORIGIN` (`https://www.aurelix.fun`, from `lib/company-info.js`) — the
+path only, so filtered and paged listings point at the unfiltered URL. A
+`noIndex` route declares neither. There is still **no `og:image`**: no
+social-preview asset exists.
 
 ### Hero preloading
 
@@ -242,9 +247,18 @@ copy:
 ErrorBoundary > QueryClientProvider > StoreProvider > CheckoutProvider > CustomerProvider > router
 ```
 
-`features/support/` holds the six help and policy pages on a shared layout,
-with navigation constants split out into `support-nav.js` for the same
-Fast Refresh reason.
+`features/support/` holds the eight help, information, and policy pages on a
+shared layout, with navigation constants split out into `support-nav.js` for
+the same Fast Refresh reason. `SupportLayout` ends every one of them with the
+operating company's details (`components/shared/company-contact.jsx`), except
+the contact page, which leads with them instead.
+
+### Company information
+
+`src/lib/company-info.js` is the single source for the operator's name,
+registered address, phone, email, and website, plus the derived `tel:`,
+`mailto:`, and `SITE_ORIGIN` values. The footer's Company information band,
+`CompanyContact`, the policy pages, and `PageMeta` all read from it.
 
 Full behaviour, privacy properties, and backend seams:
 [`docs/CUSTOMER_PAGES.md`](./CUSTOMER_PAGES.md).

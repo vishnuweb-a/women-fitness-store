@@ -3,8 +3,8 @@
  *
  * ## Policy status is on the page, not in a footnote
  *
- * The shipping, returns, privacy, and terms pages describe commercial and
- * legal positions that FITNEX has not set. Presenting them as settled would
+ * The shipping, returns, privacy, terms, and disclaimer pages describe
+ * commercial and legal positions that have not been finalised. Presenting them as settled would
  * be inventing terms a customer could reasonably rely on, so each page opens
  * with a visible status banner naming what it is: a draft, or a placeholder
  * awaiting the merchant's confirmation.
@@ -12,8 +12,10 @@
 import { FileClock, Info, TriangleAlert } from 'lucide-react'
 import { Link, NavLink } from 'react-router-dom'
 
+import { CompanyContact } from '@/components/shared/company-contact'
 import { PageMeta } from '@/components/shared/page-meta'
 import { SUPPORT_NAV } from '@/features/support/support-nav'
+import { COMPANY_INFO } from '@/lib/company-info'
 import { cn } from '@/lib/utils'
 
 function supportNavClass({ isActive }) {
@@ -92,8 +94,19 @@ export function SupportSection({ id, title, children, className }) {
  *
  * Mirrors the customer layout: one `nav`, one `h1`, a sidebar from `lg:` up
  * and a horizontal scroller below it, and a readable measure for prose.
+ *
+ * Every support and policy page ends with the operating company's contact
+ * details, rendered here once rather than repeated in each page. The contact
+ * page sets `showCompanyContact={false}` because it leads with the same
+ * details, and showing them twice on one page is noise.
  */
-export function SupportLayout({ title, description, status, children }) {
+export function SupportLayout({
+  title,
+  description,
+  status,
+  showCompanyContact = true,
+  children,
+}) {
   return (
     <div className="container-site py-8 sm:py-10">
       <PageMeta title={title} description={description} />
@@ -125,13 +138,25 @@ export function SupportLayout({ title, description, status, children }) {
 
           {children}
 
-          <p className="mt-10 border-t border-border pt-4 text-sm text-muted-foreground text-pretty">
-            Something here unclear or wrong?{' '}
-            <Link to="/contact" className="font-medium text-brand-600 hover:underline">
-              See the contact page
-            </Link>{' '}
-            for what is and is not available.
-          </p>
+          {showCompanyContact && (
+            <section
+              aria-labelledby="support-company"
+              className="mt-10 border-t border-border pt-6"
+            >
+              <h2 id="support-company" className="font-display text-xl font-bold tracking-tight">
+                Company information
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-ink-800 text-pretty">
+                This website is operated by {COMPANY_INFO.legalName}. Something here
+                unclear or wrong? Get in touch using the details below, or see the{' '}
+                <Link to="/contact" className="font-medium text-brand-600 hover:underline">
+                  contact page
+                </Link>
+                .
+              </p>
+              <CompanyContact className="mt-4" />
+            </section>
+          )}
         </div>
       </div>
     </div>

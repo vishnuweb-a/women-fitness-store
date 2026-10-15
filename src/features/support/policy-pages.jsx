@@ -3,8 +3,8 @@
  *
  * ## The rule these four pages follow
  *
- * FITNEX has set no commercial or legal terms, and this build cannot ship,
- * refund, or charge anything. So none of these pages states a delivery area,
+ * No commercial or legal terms have been set for FITNEX, and this build cannot
+ * ship, refund, or charge anything. So none of these pages states a delivery area,
  * a fee, a timeframe, a return window, a guarantee, or a refund rule — each
  * would be a commitment a customer could reasonably rely on, invented by the
  * people who built the frontend rather than decided by the merchant.
@@ -17,10 +17,19 @@
  * actually receive a request. That is verifiable, so it is stated plainly and
  * marked as a draft pending review rather than presented as a finished
  * policy.
+ *
+ * ## The operating company
+ *
+ * The site is operated by the company in `lib/company-info.js`. Its name and
+ * registered address are stated where a page names its operator, and every
+ * page ends with the company's contact details (rendered by `SupportLayout`).
+ * Supplying the company's identity does not settle the substantive terms, so
+ * each page still says what remains undecided.
  */
 import { Link } from 'react-router-dom'
 
 import { PolicyStatus, SupportLayout, SupportSection } from '@/features/support/support-layout'
+import { COMPANY_INFO } from '@/lib/company-info'
 
 /* -------------------------------------------------------------------------- */
 /* Shipping                                                                   */
@@ -86,21 +95,21 @@ export function ShippingPage() {
 export function ReturnsPage() {
   return (
     <SupportLayout
-      title="Returns"
-      description="The returns and refunds policy for FITNEX WOMEN has not been confirmed."
+      title="Returns, refunds & cancellations"
+      description="The returns, refund, and cancellation policy for FITNEX WOMEN has not been confirmed."
       status={
         <PolicyStatus tone="pending">
-          No returns policy has been set. Return windows, eligibility, refund rules,
-          and exchange terms are all awaiting confirmation from the merchant, so none
-          is stated on this page.
+          No returns, refund, or cancellation policy has been set. Return windows,
+          eligibility, refund rules, cancellation terms, and exchange terms are all
+          awaiting confirmation from the merchant, so none is stated on this page.
         </PolicyStatus>
       }
     >
       <SupportSection id="returns-status" title="Why this page is empty of detail">
         <p>
-          No order can be placed in this build, so no order can be returned. There is
-          no payment provider to refund through, no order record to return against,
-          and no returns process to describe.
+          No order can be placed in this build, so no order can be returned, refunded,
+          or cancelled. There is no payment provider to refund through, no order
+          record to return against or cancel, and no returns process to describe.
         </p>
         <p>
           A return window or refund guarantee stated here would be a promise nobody
@@ -115,6 +124,7 @@ export function ReturnsPage() {
           <li>Condition and packaging requirements.</li>
           <li>Who pays return shipping.</li>
           <li>How and when a refund would be issued, and in what form.</li>
+          <li>Whether an order can be cancelled, and until what point.</li>
           <li>Whether exchanges are offered.</li>
         </ul>
       </SupportSection>
@@ -144,12 +154,21 @@ export function PrivacyPage() {
       status={
         <PolicyStatus tone="draft">
           This is a technical description of observed behaviour, not a finished
-          privacy policy. It has not been reviewed by the merchant or by a lawyer, it
-          names no legal entity or jurisdiction, and it should not be relied on as a
+          privacy policy. It names the operating company but has not been reviewed by
+          a lawyer, names no governing jurisdiction, and should not be relied on as a
           legal document.
         </PolicyStatus>
       }
     >
+      <SupportSection id="privacy-operator" title="Who operates this site">
+        <p>
+          FITNEX WOMEN and this website are operated by {COMPANY_INFO.legalName},
+          registered at {COMPANY_INFO.address}. Questions about this page, or about
+          how your information is handled, can be sent to the company using the
+          contact details at the end of this page.
+        </p>
+      </SupportSection>
+
       <SupportSection id="privacy-stored" title="What is stored in your browser">
         <p>
           Two values are written to this site's <code>localStorage</code>, and
@@ -234,16 +253,20 @@ export function PrivacyPage() {
           <li>No order record is created or stored on any server.</li>
           <li>No newsletter subscription is recorded; the form says so when used.</li>
           <li>No contact message is transmitted; the form says so before you type.</li>
+          <li>
+            If you email or phone the company, that message reaches it outside this
+            website, and is not covered by the observed behaviour described here.
+          </li>
           <li>Nothing is written to a database. No database tables exist.</li>
         </ul>
       </SupportSection>
 
       <SupportSection id="privacy-pending" title="What a published policy would still need">
         <p>
-          A real privacy policy needs the merchant's legal entity and address, the
-          governing jurisdiction, a lawful basis for each kind of processing,
-          retention periods, how to exercise data rights, and a contact route for
-          doing so. None of those has been supplied, and none is invented here.
+          The operating company and its contact details are now stated above. A real
+          privacy policy also needs the governing jurisdiction, a lawful basis for
+          each kind of processing, retention periods, and how to exercise data
+          rights. None of those has been supplied, and none is invented here.
         </p>
       </SupportSection>
     </SupportLayout>
@@ -262,9 +285,8 @@ export function TermsPage() {
       status={
         <PolicyStatus tone="draft">
           These are draft notes about a demonstration site, not terms of sale or a
-          contract. They have not been reviewed by the merchant or by a lawyer, they
-          name no legal entity or jurisdiction, and no sale can take place here for
-          them to govern.
+          contract. They have not been reviewed by a lawyer, they name no governing
+          law or jurisdiction, and no sale can take place here for them to govern.
         </PolicyStatus>
       }
     >
@@ -272,6 +294,11 @@ export function TermsPage() {
         <p>
           FITNEX WOMEN is a demonstration storefront built to show how the shopping
           experience would look and behave. It is not an operating shop.
+        </p>
+        <p>
+          The site is operated by {COMPANY_INFO.legalName}, registered at{' '}
+          {COMPANY_INFO.address}. The company's contact details are at the end of this
+          page.
         </p>
         <p>
           You cannot buy anything here. Checkout validates its forms and renders a
@@ -319,11 +346,12 @@ export function TermsPage() {
 
       <SupportSection id="terms-pending" title="What published terms would still need">
         <p>
-          Terms of sale need the merchant's legal entity and registered address, the
-          governing law and jurisdiction, how a contract is formed, pricing and tax
-          treatment, delivery and returns rights, liability limits, and a complaints
-          route. None of those has been supplied, and none is invented here — nor is
-          any other company's terms copied in as a placeholder.
+          The operating company's name and registered address are now stated above.
+          Terms of sale also need the governing law and jurisdiction, how a contract
+          is formed, pricing and tax treatment, delivery and returns rights, liability
+          limits, and a complaints process. None of those has been supplied, and none
+          is invented here — nor is any other company's terms copied in as a
+          placeholder.
         </p>
       </SupportSection>
     </SupportLayout>

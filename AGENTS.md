@@ -114,8 +114,16 @@ real heading and a real link or button on top.
   `index.html`. Detail: `docs/ARCHITECTURE.md`.
 - Demo and per-visitor routes (cart, checkout, confirmation, `/account/*`,
   not-found) carry `noIndex`. Keep it.
-- **Do not invent a canonical URL, `og:url`, `og:image`, or a production
-  domain.** None exists.
+- **The production domain is `https://www.aurelix.fun/`**, supplied by the
+  owner and held in `src/lib/company-info.js` as `SITE_ORIGIN`. `PageMeta`
+  derives the canonical URL and `og:url` from it for indexable routes only.
+  Do not hardcode the domain elsewhere, and do not invent an `og:image` —
+  none exists.
+- **Company details live in `src/lib/company-info.js` only.** The operator is
+  AURELIX PRIVATE LIMITED; its name, registered address, phone, and email are
+  read from there by the footer, `CompanyContact`, and the support pages.
+  Never retype them in a component, and never add a detail the owner has not
+  supplied (GSTIN, CIN, hours, response times).
 
 ### Styling
 

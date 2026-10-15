@@ -2,11 +2,20 @@ import { Link } from 'react-router-dom'
 import { CreditCard, LifeBuoy, PackageCheck, RotateCcw } from 'lucide-react'
 
 import { NewsletterForm } from '@/components/shared/newsletter-form'
+import {
+  COMPANY_EMAIL_HREF,
+  COMPANY_INFO,
+  COMPANY_PHONE_DISPLAY,
+  COMPANY_PHONE_HREF,
+} from '@/lib/company-info'
 import { CATEGORY_NAV } from '@/services/category-meta'
 
 /**
  * Footer, following the reference layout: a newsletter strip, a trust row,
- * link columns, and the legal line.
+ * link columns, the operating company's details, and the legal line.
+ *
+ * The company details come from `lib/company-info.js`, the same source the
+ * contact and policy pages read, so they cannot drift apart.
  *
  * Every link points at a route that exists. The reference's "Best Sellers",
  * "New Arrivals", and "Sale" entries are omitted — no catalog field supports
@@ -38,11 +47,13 @@ const FOOTER_SECTIONS = [
     heading: 'Help',
     links: [
       { label: 'Help centre', to: '/help' },
-      { label: 'Contact', to: '/contact' },
+      { label: 'Contact us', to: '/contact' },
+      { label: 'About us', to: '/about' },
       { label: 'Shipping', to: '/shipping' },
-      { label: 'Returns', to: '/returns' },
+      { label: 'Returns & refunds', to: '/returns' },
       { label: 'Privacy', to: '/privacy' },
       { label: 'Terms', to: '/terms' },
+      { label: 'Disclaimer', to: '/disclaimer' },
     ],
   },
 ]
@@ -170,9 +181,64 @@ export function SiteFooter() {
         </div>
       </div>
 
+      {/* Company information */}
+      <section aria-labelledby="footer-company" className="border-t border-ink-800">
+        <div className="container-site py-8">
+          <h2
+            id="footer-company"
+            className="text-sm font-semibold uppercase tracking-wide text-white"
+          >
+            Company information
+          </h2>
+          <address className="mt-4 grid gap-5 text-sm not-italic text-ink-300 sm:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-ink-400">
+                Operated by
+              </p>
+              <p className="mt-1 font-semibold text-white">{COMPANY_INFO.legalName}</p>
+            </div>
+            <div className="lg:col-span-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-ink-400">
+                Registered address
+              </p>
+              <p className="mt-1 break-words text-pretty">{COMPANY_INFO.address}</p>
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-ink-400">
+                Get in touch
+              </p>
+              <ul className="mt-1">
+                <li>
+                  <span className="text-ink-400">Phone: </span>
+                  <a
+                    href={COMPANY_PHONE_HREF}
+                    aria-label={`${COMPANY_PHONE_DISPLAY}, call ${COMPANY_INFO.legalName}`}
+                    className="inline-flex min-h-9 items-center text-ink-200 underline-offset-2 transition-colors hover:text-white hover:underline"
+                  >
+                    {COMPANY_PHONE_DISPLAY}
+                  </a>
+                </li>
+                <li>
+                  <span className="text-ink-400">Email: </span>
+                  <a
+                    href={COMPANY_EMAIL_HREF}
+                    aria-label={`${COMPANY_INFO.email}, email ${COMPANY_INFO.legalName}`}
+                    className="inline-flex min-h-9 items-center break-all text-ink-200 underline-offset-2 transition-colors hover:text-white hover:underline"
+                  >
+                    {COMPANY_INFO.email}
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </address>
+        </div>
+      </section>
+
       <div className="border-t border-ink-800">
-        <div className="container-site flex flex-col items-center justify-between gap-2 py-4 text-xs text-ink-400 sm:flex-row">
-          <p>© {new Date().getFullYear()} FITNEX WOMEN. All rights reserved.</p>
+        <div className="container-site flex flex-col items-center justify-between gap-2 py-4 text-center text-xs text-ink-400 sm:flex-row sm:text-left">
+          <p>
+            © {new Date().getFullYear()} {COMPANY_INFO.legalName}. All rights reserved.
+          </p>
           <p>Stronger People. A Healthier World.</p>
         </div>
       </div>
