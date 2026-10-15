@@ -12,7 +12,7 @@
  */
 import { Link } from 'react-router-dom'
 
-import { SupportLayout, SupportNote, SupportSection } from '@/features/support/support-layout'
+import { SupportLayout, SupportSection } from '@/features/support/support-layout'
 
 /** One question and its answer. */
 function Faq({ question, children }) {
@@ -30,13 +30,7 @@ export function HelpPage() {
   return (
     <SupportLayout
       title="Help centre"
-      description="What this storefront can do today, in plain language — and what it deliberately cannot."
-      status={
-        <SupportNote>
-          FITNEX WOMEN is a demonstration storefront. Everything described here was
-          checked against the build; anything not described is not implemented.
-        </SupportNote>
-      }
+      description="Answers to common questions about shopping with FITNEX WOMEN."
     >
       <SupportSection id="help-shopping" title="Browsing and finding products">
         <div className="grid gap-3">

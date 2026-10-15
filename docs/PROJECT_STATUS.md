@@ -676,6 +676,20 @@ devices, a screen reader, or Firefox/WebKit. Not deployed.
   `/sitemap.xml`.
 - No structured data (JSON-LD) exists; none was added.
 
+## Storefront copy update — 2026-10-15
+
+- Announcement bar now reads "Activewear and accessories designed for women
+  who move" with a "Need help? Visit our help centre" link, replacing the
+  "Demonstration storefront — no payment is taken" notice.
+- Removed the "Draft for review" / "Not set yet" status banners from the
+  privacy, terms, shipping, returns, and disclaimer pages, and the
+  demonstration callouts from the help and about pages. Page descriptions
+  were rewritten without "draft" / "demonstration" wording.
+- Kept: the contact page's notice that the message form is not connected
+  (it still sends nothing). Body text on the terms, help, about, cart, and
+  footer still describes the site as a demonstration, and checkout still
+  takes no payment.
+
 ## Next phase — backend
 
 The frontend demonstration is complete. Everything that remains before this is

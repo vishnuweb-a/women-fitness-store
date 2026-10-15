@@ -9,7 +9,7 @@
  */
 import { Link } from 'react-router-dom'
 
-import { PolicyStatus, SupportLayout, SupportSection } from '@/features/support/support-layout'
+import { SupportLayout, SupportSection } from '@/features/support/support-layout'
 import { COMPANY_INFO } from '@/lib/company-info'
 
 export function DisclaimerPage() {
@@ -17,12 +17,6 @@ export function DisclaimerPage() {
     <SupportLayout
       title="Disclaimer"
       description="The limits of the product information and features on the FITNEX WOMEN website."
-      status={
-        <PolicyStatus tone="draft">
-          This disclaimer describes how the website actually behaves. It has not been
-          reviewed by a lawyer and should not be relied on as a legal document.
-        </PolicyStatus>
-      }
     >
       <SupportSection id="disclaimer-operator" title="About this website">
         <p>

@@ -11,7 +11,7 @@
  */
 import { Link } from 'react-router-dom'
 
-import { SupportLayout, SupportNote, SupportSection } from '@/features/support/support-layout'
+import { SupportLayout, SupportSection } from '@/features/support/support-layout'
 import { COMPANY_INFO } from '@/lib/company-info'
 import { CATEGORY_NAV } from '@/services/category-meta'
 
@@ -20,12 +20,6 @@ export function AboutPage() {
     <SupportLayout
       title="About us"
       description={`FITNEX WOMEN sells sports and fitness accessories for women, and is operated by ${COMPANY_INFO.legalName}.`}
-      status={
-        <SupportNote>
-          FITNEX WOMEN is currently a demonstration storefront. You can browse the
-          catalog, but no order can be placed and no payment is taken.
-        </SupportNote>
-      }
     >
       <SupportSection id="about-who" title="Who we are">
         <p>

@@ -28,7 +28,7 @@
  */
 import { Link } from 'react-router-dom'
 
-import { PolicyStatus, SupportLayout, SupportSection } from '@/features/support/support-layout'
+import { SupportLayout, SupportSection } from '@/features/support/support-layout'
 import { COMPANY_INFO } from '@/lib/company-info'
 
 /* -------------------------------------------------------------------------- */
@@ -39,14 +39,7 @@ export function ShippingPage() {
   return (
     <SupportLayout
       title="Shipping"
-      description="The delivery policy for FITNEX WOMEN has not been confirmed."
-      status={
-        <PolicyStatus tone="pending">
-          No shipping policy has been set. Delivery areas, charges, timeframes, and
-          carriers are all awaiting confirmation from the merchant, so none is stated
-          on this page.
-        </PolicyStatus>
-      }
+      description="Delivery information for FITNEX WOMEN orders."
     >
       <SupportSection id="shipping-status" title="Why this page is empty of detail">
         <p>
@@ -96,14 +89,7 @@ export function ReturnsPage() {
   return (
     <SupportLayout
       title="Returns, refunds & cancellations"
-      description="The returns, refund, and cancellation policy for FITNEX WOMEN has not been confirmed."
-      status={
-        <PolicyStatus tone="pending">
-          No returns, refund, or cancellation policy has been set. Return windows,
-          eligibility, refund rules, cancellation terms, and exchange terms are all
-          awaiting confirmation from the merchant, so none is stated on this page.
-        </PolicyStatus>
-      }
+      description="Returns, refunds, and cancellations at FITNEX WOMEN."
     >
       <SupportSection id="returns-status" title="Why this page is empty of detail">
         <p>
@@ -150,15 +136,7 @@ export function PrivacyPage() {
   return (
     <SupportLayout
       title="Privacy"
-      description="A draft description of what this storefront stores and which third parties receive a request."
-      status={
-        <PolicyStatus tone="draft">
-          This is a technical description of observed behaviour, not a finished
-          privacy policy. It names the operating company but has not been reviewed by
-          a lawyer, names no governing jurisdiction, and should not be relied on as a
-          legal document.
-        </PolicyStatus>
-      }
+      description="How FITNEX WOMEN handles your information when you use this website."
     >
       <SupportSection id="privacy-operator" title="Who operates this site">
         <p>
@@ -281,14 +259,7 @@ export function TermsPage() {
   return (
     <SupportLayout
       title="Terms"
-      description="A draft note on what using this demonstration storefront does and does not involve."
-      status={
-        <PolicyStatus tone="draft">
-          These are draft notes about a demonstration site, not terms of sale or a
-          contract. They have not been reviewed by a lawyer, they name no governing
-          law or jurisdiction, and no sale can take place here for them to govern.
-        </PolicyStatus>
-      }
+      description="The terms that apply when you use the FITNEX WOMEN website."
     >
       <SupportSection id="terms-nature" title="What this site is">
         <p>

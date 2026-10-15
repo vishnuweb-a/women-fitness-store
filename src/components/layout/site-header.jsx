@@ -2,10 +2,10 @@ import { useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import {
   Heart,
+  LifeBuoy,
   Menu,
-  PackageCheck,
   Search,
-  ShieldCheck,
+  Sparkles,
   ShoppingBag,
   User,
 } from 'lucide-react'
@@ -44,25 +44,23 @@ const NAV_ITEMS = [
  * Thin strip above the header, as in every reference screen.
  *
  * The reference fills it with "Free shipping on orders over ₹999" and
- * "30-day easy returns". Neither policy has been set — the shipping and
- * returns pages say so — and a claim repeated on every page of the site is
- * the last place to leave an invented commitment. What it carries instead is
- * true of this build, and links to the page that explains it.
+ * "30-day easy returns". Neither policy has been set, so the strip carries a
+ * brand line and a link to the help centre instead of an invented commitment.
  */
 export function AnnouncementBar() {
   return (
     <div className="bg-ink-950 text-ink-200">
       <div className="container-site flex min-h-9 flex-wrap items-center justify-center gap-x-6 gap-y-1 py-2 text-center text-xs sm:justify-between">
         <p className="flex items-center gap-1.5">
-          <ShieldCheck className="size-3.5" aria-hidden="true" focusable="false" />
-          Demonstration storefront — no payment is taken
+          <Sparkles className="size-3.5" aria-hidden="true" focusable="false" />
+          Activewear and accessories designed for women who move
         </p>
         <Link
           to="/help"
           className="hidden min-h-9 items-center gap-1.5 underline-offset-2 transition-colors hover:text-white hover:underline sm:inline-flex"
         >
-          <PackageCheck className="size-3.5" aria-hidden="true" focusable="false" />
-          See what this storefront can do
+          <LifeBuoy className="size-3.5" aria-hidden="true" focusable="false" />
+          Need help? Visit our help centre
         </Link>
       </div>
     </div>
