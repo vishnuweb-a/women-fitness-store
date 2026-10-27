@@ -31,7 +31,7 @@ shadcn/ui, with Supabase as the intended data layer.
 
 ## Quick start
 
-```bash
+```command
 npm install
 cp .env.example .env.local   # fill in the public values
 npm run dev
